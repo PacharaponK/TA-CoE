@@ -59,9 +59,7 @@ function LoginPage({
 
         {/* Brand mark */}
         <div className="flex flex-col items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white text-black shadow-lg">
-            <span className="text-3xl font-extrabold">Q</span>
-          </div>
+          <img src="/logo.png" alt="Logo" className="h-16 w-16 object-cover rounded-2xl shadow-lg" />
           <div className="text-center">
             <p className="text-xl font-bold tracking-tight text-white">TA@CoE</p>
             <p className="mt-0.5 text-sm text-zinc-400">ระบบจัดคิวตรวจ Checkpoint</p>

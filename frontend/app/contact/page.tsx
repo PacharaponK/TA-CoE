@@ -4,7 +4,7 @@ import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
-import { Mail, MapPin, Clock, Calendar } from 'lucide-react';
+import { Mail, Clock, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function FacebookIcon(props: React.ComponentProps<'svg'>) {
@@ -56,7 +56,7 @@ interface TAInfo {
 const TAS: TAInfo[] = [
   {
     name: 'Pacharapon Ketkaew (พี่บอล)',
-    role: 'Head TA',
+    role: '',
     email: 'pacharapon.ketkaew@gmail.com',
     facebookName: 'Pacharapon Ketkaew',
     facebookUrl: 'https://www.facebook.com/pacharapon.ketkaew',
@@ -68,9 +68,11 @@ const TAS: TAInfo[] = [
 ];
 
 const SCHEDULE = [
-  { day: 'วันจันทร์', time: '13:00 – 16:00', note: 'Lab C Programming' },
-  { day: 'วันพุธ', time: '09:00 – 12:00, 13:00 – 16:00', note: 'Lab Digital Logic' },
-  { day: 'วันศุกร์', time: '13:00 – 16:00', note: 'ปรึกษาทั่วไป / ติดตามงาน' },
+  { day: 'วันจันทร์', time: '08:00 – 09:50', note: '240-216 EXPLORING SOFTWARE (Sec 02) · COM 1' },
+  { day: 'วันอังคาร', time: '08:00 – 10:50', note: '240-319 EMBEDDED SYS DEVELOP (Sec 01) · R404' },
+  { day: 'วันพุธ', time: '10:00 – 11:50', note: '240-121 BASIC HARDWARE LAB (Sec 02) · R404' },
+  { day: 'วันพฤหัสบดี', time: '10:00 – 11:50', note: '200-116 BASIC ENGINEERING PROGRAMMING (Sec 01) · COM 2' },
+  { day: 'วันศุกร์', time: '08:00 – 09:50', note: '240-316 EXPER AD TECHN IN COM ENG (Sec 01)' },
 ];
 
 export default function ContactPage() {
@@ -134,7 +136,7 @@ export default function ContactPage() {
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-lg font-semibold text-white truncate">{ta.name}</h3>
-                          <p className="text-xs text-zinc-400">{ta.role}</p>
+                          {ta.role && <p className="text-xs text-zinc-400">{ta.role}</p>}
 
                           <div className="mt-4 flex flex-col gap-2">
                             <div className="flex items-center gap-2 text-xs text-zinc-400">
@@ -201,26 +203,9 @@ export default function ContactPage() {
 
           {/* Right sidebar: Office & Schedule */}
           <aside className="flex flex-col gap-6">
-            {/* Office location */}
-            <section className="flex flex-col gap-4">
-              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">สถานที่ติดต่อ</h2>
-              <Card className="bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm">
-                <CardContent className="p-6 flex gap-4">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/5 border border-white/5">
-                    <MapPin className="h-5 w-5 text-zinc-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">ห้องปฏิบัติการคอมพิวเตอร์ภาควิชา CoE</h3>
-                    <p className="text-xs text-zinc-400 mt-1">ชั้น 4 อาคารวิศวกรรมคอมพิวเตอร์ (Room 405)</p>
-                    <p className="text-[11px] text-zinc-500 mt-1">มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </section>
-
             {/* Schedule */}
             <section className="flex flex-col gap-4">
-              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">ตารางปฏิบัติการ (Lab Hours)</h2>
+              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">ตารางปฏิบัติงาน</h2>
               <Card className="bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm">
                 <CardContent className="p-6 flex flex-col gap-4">
                   {SCHEDULE.map((s, idx) => (

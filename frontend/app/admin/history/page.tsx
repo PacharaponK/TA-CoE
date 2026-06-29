@@ -127,16 +127,32 @@ function History() {
                     <TableCell className="whitespace-nowrap text-zinc-400">{fmtDateTime(r.resolvedAt)}</TableCell>
                     <TableCell className="text-zinc-300">{r.resolvedBy || '–'}</TableCell>
                     <TableCell>
-                      {r.status === 'failed' && (
-                        <Button size="sm" variant="outline"
-                          className="whitespace-nowrap rounded-full border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white"
+                      <div className="flex items-center gap-2 justify-end">
+                        {r.status === 'failed' && (
+                          <Button size="sm" variant="outline"
+                            className="whitespace-nowrap rounded-full border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white"
+                            onClick={async () => {
+                              try { await queueApi.requeue(r._id); await reload(); }
+                              catch (e) { setError((e as Error).message); }
+                            }}>
+                            เข้าคิวใหม่
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-full"
                           onClick={async () => {
-                            try { await queueApi.requeue(r._id); await reload(); }
-                            catch (e) { setError((e as Error).message); }
+                            if (confirm('คุณต้องการลบประวัติรายการนี้ใช่หรือไม่?')) {
+                              try {
+                                await queueApi.remove(r._id);
+                                await reload();
+                              } catch (e) {
+                                setError((e as Error).message);
+                              }
+                            }
                           }}>
-                          เข้าคิวใหม่
+                          ลบ
                         </Button>
-                      )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

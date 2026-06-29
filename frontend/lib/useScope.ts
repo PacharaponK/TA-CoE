@@ -45,5 +45,45 @@ export function useScope(activeOnly = false) {
     reloadLabs();
   }, [reloadLabs]);
 
+  // Auto-select first active subject (fallback to first subject in list)
+  useEffect(() => {
+    if (subjects.length > 0 && !scope.subjectId) {
+      const activeSub = subjects.find((s) => s.isActive) || subjects[0];
+      if (activeSub) {
+        setScope((prev) => ({ ...prev, subjectId: activeSub._id }));
+      }
+    }
+  }, [subjects, scope.subjectId]);
+
+  // Auto-select first active lab (fallback to first lab in list)
+  useEffect(() => {
+    if (labs.length > 0 && scope.subjectId && !scope.labId) {
+      const activeLab = labs.find((l) => l.isActive) || labs[0];
+      if (activeLab) {
+        const defaultCheckpoint = activeLab.checkpoints && activeLab.checkpoints.length > 0
+          ? '__all__'
+          : '';
+        setScope((prev) => ({
+          ...prev,
+          labId: activeLab._id,
+          checkpointId: defaultCheckpoint,
+        }));
+      }
+    }
+  }, [labs, scope.subjectId, scope.labId]);
+
+  // Auto-select default checkpoint when lab is manually switched
+  useEffect(() => {
+    if (scope.labId && !scope.checkpointId) {
+      const currentLab = labs.find((l) => l._id === scope.labId);
+      if (currentLab) {
+        const defaultCheckpoint = currentLab.checkpoints && currentLab.checkpoints.length > 0
+          ? '__all__'
+          : '';
+        setScope((prev) => ({ ...prev, checkpointId: defaultCheckpoint }));
+      }
+    }
+  }, [scope.labId, scope.checkpointId, labs]);
+
   return { subjects, labs, scope, setScope, reloadSubjects, reloadLabs };
 }

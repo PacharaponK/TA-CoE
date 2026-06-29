@@ -13,17 +13,17 @@ export function NavBar() {
   const isAdmin = pathname.startsWith('/admin');
   const links = isAdmin
     ? [
-        { href: '/admin',            label: 'จัดการคิว' },
-        { href: '/admin/subjects',   label: 'วิชา & Lab' },
-        { href: '/admin/students',   label: 'นักศึกษา' },
-        { href: '/admin/history',    label: 'History' },
-        { href: '/queue',            label: 'คิว (นักศึกษา)' },
-      ]
+      { href: '/admin', label: 'จัดการคิว' },
+      { href: '/admin/subjects', label: 'วิชา & Lab' },
+      { href: '/admin/students', label: 'นักศึกษา' },
+      { href: '/admin/history', label: 'History' },
+      { href: '/queue', label: 'คิว (นักศึกษา)' },
+    ]
     : [
-        { href: '/',                 label: 'หน้าแรก' },
-        { href: '/queue',            label: 'คิวตรวจ' },
-        { href: '/contact',          label: 'ติดต่อ TA' },
-      ];
+      { href: '/', label: 'หน้าแรก' },
+      { href: '/queue', label: 'คิวตรวจ' },
+      { href: '/contact', label: 'ติดต่อ TA' },
+    ];
 
   return (
     <>
@@ -34,8 +34,9 @@ export function NavBar() {
           open ? 'h-screen opacity-100' : 'h-0 opacity-0 pointer-events-none',
         )}
       >
-        <div className="absolute top-6 left-6 text-sm font-semibold tracking-tight text-white">
-          TA@CoE
+        <div className="absolute top-6 left-6 flex items-center gap-2 text-sm font-semibold tracking-tight text-white">
+          <img src="/logo.png" alt="Logo" className="h-5 w-5 object-cover rounded-sm" />
+          <span>TA@CoE</span>
         </div>
         <div className="flex flex-col gap-8">
           <nav className="flex flex-col gap-8">
@@ -62,11 +63,11 @@ export function NavBar() {
         </div>
       </div>
 
-      {/* ── Navbar ── */}
       <nav className="relative z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
         <div className="flex items-center gap-8">
-          <Link href="/" className="text-lg font-semibold tracking-tight text-white sm:text-xl shrink-0" onClick={() => setOpen(false)}>
-            TA@CoE
+          <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white sm:text-xl shrink-0 group" onClick={() => setOpen(false)}>
+            <img src="/logo.png" alt="Logo" className="h-6 w-6 object-cover rounded-md transition-transform group-hover:scale-105" />
+            <span>TA@CoE</span>
           </Link>
           <div className="hidden items-center gap-6 md:flex">
             {links.map((l) => {
