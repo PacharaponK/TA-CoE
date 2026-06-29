@@ -2,23 +2,27 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isLoggedIn } from '@/lib/auth';
 
 export function NavBar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => { setLoggedIn(isLoggedIn()); }, [pathname]);
 
   const isAdmin = pathname.startsWith('/admin');
+  const adminLinks = [
+    { href: '/admin', label: 'จัดการคิว' },
+    { href: '/admin/history', label: 'History' },
+    { href: '/admin/subjects', label: 'วิชา & Lab' },
+    { href: '/admin/students', label: 'นักศึกษา' },
+  ];
   const links = isAdmin
-    ? [
-      { href: '/admin', label: 'จัดการคิว' },
-      { href: '/admin/subjects', label: 'วิชา & Lab' },
-      { href: '/admin/students', label: 'นักศึกษา' },
-      { href: '/admin/history', label: 'History' },
-      { href: '/queue', label: 'คิว (นักศึกษา)' },
-    ]
+    ? adminLinks
     : [
       { href: '/', label: 'หน้าแรก' },
       { href: '/queue', label: 'คิวตรวจ' },
@@ -51,14 +55,41 @@ export function NavBar() {
               </Link>
             ))}
           </nav>
-          {!isAdmin && (
-            <Link
-              href="/queue"
-              onClick={() => setOpen(false)}
-              className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
-            >
-              ดูคิวปัจจุบัน
-            </Link>
+
+          {isAdmin ? (
+            /* ── Admin: student-view link separated by a rule ── */
+            <div className="flex flex-col gap-4 border-t border-white/10 pt-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/30">มุมมองนักศึกษา</p>
+              <Link
+                href="/queue"
+                onClick={() => setOpen(false)}
+                className="text-xl font-medium text-white/50 transition-colors hover:text-white/80"
+              >
+                คิว (นักศึกษา) →
+              </Link>
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/queue"
+                onClick={() => setOpen(false)}
+                className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
+              >
+                ดูคิวปัจจุบัน
+              </Link>
+              {loggedIn && (
+                <div className="flex flex-col gap-4 border-t border-white/10 pt-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-white/30">TA Console</p>
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="text-xl font-medium text-white/50 transition-colors hover:text-white/80"
+                  >
+                    จัดการคิว →
+                  </Link>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -85,11 +116,33 @@ export function NavBar() {
                 </Link>
               );
             })}
+
+            {/* ── Separator + cross-role link ── */}
+            {(isAdmin || loggedIn) && (
+              <>
+                <span className="h-4 w-px bg-white/15" aria-hidden />
+                {isAdmin ? (
+                  <Link
+                    href="/queue"
+                    className="text-sm font-medium text-white/35 transition-colors duration-200 hover:text-white/60"
+                  >
+                    คิว (นักศึกษา) ↗
+                  </Link>
+                ) : (
+                  <Link
+                    href="/admin"
+                    className="text-sm font-medium text-white/35 transition-colors duration-200 hover:text-white/60"
+                  >
+                    TA Console ↗
+                  </Link>
+                )}
+              </>
+            )}
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {!isAdmin && (
+          {!isAdmin && !loggedIn && (
             <Link
               href="/queue"
               className="hidden rounded-lg bg-white px-5 py-2 text-sm font-medium text-black transition-transform hover:scale-105 md:block"
