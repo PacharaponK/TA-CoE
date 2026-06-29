@@ -4,8 +4,42 @@ import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
-import { Facebook, Instagram, Mail, MapPin, Clock, Calendar } from 'lucide-react';
+import { Mail, MapPin, Clock, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+function FacebookIcon(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function InstagramIcon(props: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
 
 interface TAInfo {
   name: string;
@@ -113,7 +147,7 @@ export default function ContactPage() {
                               </a>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-zinc-400">
-                              <Facebook className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                              <FacebookIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
                               <a
                                 href={ta.facebookUrl}
                                 target="_blank"
@@ -124,7 +158,7 @@ export default function ContactPage() {
                               </a>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-zinc-400">
-                              <Instagram className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
+                              <InstagramIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
                               <a
                                 href={`https://www.instagram.com/${ta.igName.replace('@', '')}/`}
                                 target="_blank"
