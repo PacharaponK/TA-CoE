@@ -11,14 +11,15 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState, Field, Spinner } from '@/components/ui';
 import { studentsApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { Users } from 'lucide-react';
 import type { Student } from '@/lib/types';
 
 // ── Stats chip ────────────────────────────────────────────────────
 function StatChip({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex flex-col items-center rounded-xl border border-border bg-card px-5 py-3 shadow-soft">
-      <span className="text-2xl font-bold text-foreground">{value}</span>
-      <span className="mt-0.5 text-xs text-muted-foreground">{label}</span>
+    <div className="flex flex-col items-center rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md px-5 py-3 shadow-md">
+      <span className="text-2xl font-bold text-white">{value}</span>
+      <span className="mt-0.5 text-xs text-zinc-400">{label}</span>
     </div>
   );
 }
@@ -85,9 +86,9 @@ function Manager() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">TA Console</p>
-          <h1 className="mt-1 text-2xl font-bold text-foreground">นักศึกษา</h1>
-          <p className="text-sm text-muted-foreground">จัดการข้อมูลนักศึกษาในระบบ</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">TA Console</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">นักศึกษา</h1>
+          <p className="text-sm text-zinc-400">จัดการข้อมูลนักศึกษาในระบบ</p>
         </div>
         <LogoutButton />
       </div>
@@ -96,7 +97,7 @@ function Manager() {
 
       {/* Stats */}
       {!loading && students.length > 0 && (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 animate-[fadeSlideUp_0.8s_ease_0.15s_both]">
           <StatChip label="ทั้งหมด" value={students.length} />
           {byYear.map(({ year, count }) => (
             <StatChip key={year} label={`ชั้นปีที่ ${year}`} value={count} />
@@ -105,12 +106,13 @@ function Manager() {
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end gap-3 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
         <Field label="ค้นหา" className="min-w-[200px] flex-1">
           <Input
             placeholder="ชื่อ / รหัสนักศึกษา / ชื่อเล่น…"
             value={search}
             onChange={e => setSearch(e.target.value)}
+            className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
           />
         </Field>
 
@@ -119,13 +121,13 @@ function Manager() {
             value={filterYear}
             onChange={e => setFilterYear(e.target.value)}
             className={cn(
-              'flex h-9 w-full rounded-xs border border-input bg-transparent px-3 py-1',
-              'text-sm text-foreground shadow-sm transition-colors',
-              'focus:outline-none focus:ring-1 focus:ring-ring',
+              'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
+              'text-sm text-white shadow-sm transition-colors outline-none',
+              'focus:ring-1 focus:ring-zinc-500/30',
             )}
           >
-            <option value="">ทั้งหมด</option>
-            {years.map(y => <option key={y} value={y}>ปีที่ {y}</option>)}
+            <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
+            {years.map(y => <option key={y} value={y} className="bg-zinc-900 text-white">ปีที่ {y}</option>)}
           </select>
         </Field>
 
@@ -135,20 +137,20 @@ function Manager() {
               value={filterSection}
               onChange={e => setFilterSection(e.target.value)}
               className={cn(
-                'flex h-9 w-full rounded-xs border border-input bg-transparent px-3 py-1',
-                'text-sm text-foreground shadow-sm transition-colors',
-                'focus:outline-none focus:ring-1 focus:ring-ring',
+                'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
+                'text-sm text-white shadow-sm transition-colors outline-none',
+                'focus:ring-1 focus:ring-zinc-500/30',
               )}
             >
-              <option value="">ทั้งหมด</option>
-              {sections.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+              <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
+              {sections.map(sec => <option key={sec} value={sec} className="bg-zinc-900 text-white">{sec}</option>)}
             </select>
           </Field>
         )}
 
         <Button
           variant="outline"
-          className="self-end"
+          className="self-end rounded-full border-white/15 text-zinc-300 hover:bg-white/5 hover:text-white"
           onClick={showForm && !editStudent ? closeForm : openAdd}
         >
           {showForm && !editStudent ? 'ยกเลิก' : '+ เพิ่มนักศึกษา'}
@@ -173,7 +175,7 @@ function Manager() {
         <EmptyState
           title={students.length === 0 ? 'ยังไม่มีนักศึกษา' : 'ไม่พบนักศึกษาที่ค้นหา'}
           description={students.length === 0 ? 'กด "+ เพิ่มนักศึกษา" เพื่อเริ่มต้น' : 'ลองเปลี่ยนคำค้นหาหรือตัวกรอง'}
-          icon="👤"
+          icon={<Users className="h-5 w-5 text-zinc-400" />}
         />
       ) : (
         <div className="flex flex-col gap-2">
@@ -203,22 +205,22 @@ function Manager() {
               <Card
                 key={s._id}
                 className={cn(
-                  'transition-shadow hover:shadow-soft',
-                  !s.isActive && 'opacity-60',
+                  'transition-all duration-300 bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm hover:border-zinc-700',
+                  !s.isActive && 'opacity-40',
                 )}
               >
                 <CardContent className="py-3">
                   {/* Mobile layout */}
                   <div className="flex items-start justify-between gap-3 sm:hidden">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-sm font-semibold text-white">
                         {s.firstName} {s.surname}
                         {s.nickname && (
-                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">({s.nickname})</span>
+                          <span className="ml-1.5 text-xs font-normal text-zinc-400">({s.nickname})</span>
                         )}
                         {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs">ปิด</Badge>}
                       </p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
+                      <p className="mt-0.5 text-xs text-zinc-400">
                         {s.studentId} · ปีที่ {s.year}{s.section ? ` · Sec ${s.section}` : ''}
                       </p>
                     </div>
@@ -227,15 +229,15 @@ function Manager() {
 
                   {/* Desktop layout */}
                   <div className="hidden grid-cols-[3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 sm:grid">
-                    <span className="text-xs text-muted-foreground">{idx + 1}</span>
-                    <span className="font-mono text-sm text-foreground">{s.studentId}</span>
-                    <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                    <span className="text-xs text-zinc-500">{idx + 1}</span>
+                    <span className="font-mono text-sm text-white">{s.studentId}</span>
+                    <span className="min-w-0 truncate text-sm font-medium text-white">
                       {s.firstName} {s.surname}
-                      {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs">ปิด</Badge>}
+                      {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs bg-zinc-800 text-zinc-300">ปิด</Badge>}
                     </span>
-                    <span className="text-sm text-muted-foreground">{s.nickname || '–'}</span>
-                    <span className="text-sm text-muted-foreground">{s.year}</span>
-                    <span className="text-sm text-muted-foreground">{s.section || '–'}</span>
+                    <span className="text-sm text-zinc-400">{s.nickname || '–'}</span>
+                    <span className="text-sm text-zinc-400">{s.year}</span>
+                    <span className="text-sm text-zinc-400">{s.section || '–'}</span>
                     <RowActions s={s} onEdit={() => openEdit(s)} onDelete={() => run(() => studentsApi.remove(s._id))} />
                   </div>
                 </CardContent>
@@ -307,9 +309,10 @@ function StudentForm({
   const canSubmit = studentId.trim() && firstName.trim() && surname.trim() && year;
 
   return (
-    <Card className="border-primary/30 shadow-soft">
+    <Card className="border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl relative overflow-hidden">
+
       <CardContent className="pt-5">
-        <p className="mb-4 text-sm font-semibold text-foreground">
+        <p className="mb-4 text-sm font-semibold text-white">
           {isEdit ? 'แก้ไขข้อมูลนักศึกษา' : 'เพิ่มนักศึกษาใหม่'}
         </p>
         <form
@@ -342,13 +345,14 @@ function StudentForm({
                 onChange={e => setStudentId(e.target.value)}
                 placeholder="6710110005"
                 disabled={isEdit}
+                className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
               />
             </Field>
             <Field label="ชื่อ *">
-              <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="กรธัช" />
+              <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="กรธัช" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30" />
             </Field>
             <Field label="นามสกุล *">
-              <Input value={surname} onChange={e => setSurname(e.target.value)} placeholder="สุขสวัสดิ์" />
+              <Input value={surname} onChange={e => setSurname(e.target.value)} placeholder="สุขสวัสดิ์" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30" />
             </Field>
             <Field label="ชั้นปี *">
               <Input
@@ -358,6 +362,7 @@ function StudentForm({
                 value={year}
                 onChange={e => setYear(e.target.value)}
                 placeholder="3"
+                className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30"
               />
             </Field>
           </div>
@@ -365,24 +370,24 @@ function StudentForm({
           {/* Row 2 */}
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="ชื่อเล่น">
-              <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="โบ" />
+              <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="โบ" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
             </Field>
             <Field label="Section">
-              <Input value={section} onChange={e => setSection(e.target.value)} placeholder="01" />
+              <Input value={section} onChange={e => setSection(e.target.value)} placeholder="01" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
             </Field>
             <Field label="อีเมล">
-              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="student@example.com" />
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="student@example.com" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
             </Field>
           </div>
 
           {/* Row 3 */}
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="เบอร์โทร">
-              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" />
+              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
             </Field>
           </div>
 
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <label className="flex items-center gap-2 text-sm text-zinc-400">
             <input
               type="checkbox"
               checked={isActive}
@@ -392,10 +397,10 @@ function StudentForm({
           </label>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={busy || !canSubmit} className="rounded-full">
+            <Button type="submit" disabled={busy || !canSubmit} className="rounded-full bg-white text-black hover:bg-white/90 font-semibold">
               {busy ? 'กำลังบันทึก…' : 'บันทึก'}
             </Button>
-            <Button type="button" variant="ghost" onClick={onCancel}>
+            <Button type="button" variant="ghost" className="text-zinc-500 hover:text-white" onClick={onCancel}>
               ยกเลิก
             </Button>
           </div>

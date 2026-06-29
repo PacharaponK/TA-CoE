@@ -96,7 +96,7 @@ function Select({
         labelMap,
       }}
     >
-      <div ref={rootRef} className="relative">
+      <div ref={rootRef} className={cn('relative w-full min-w-0', open && 'z-30')}>
         {children}
       </div>
     </SelectCtx.Provider>
@@ -133,7 +133,7 @@ function SelectTrigger({
       disabled={disabled}
       onClick={() => setOpen((o) => !o)}
       className={cn(
-        'flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-3 text-left text-sm transition-colors outline-none',
+        'flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-3 text-left text-sm transition-colors outline-none',
         'hover:bg-muted/60',
         open
           ? 'border-ring ring-2 ring-ring/30'
@@ -143,7 +143,7 @@ function SelectTrigger({
       )}
       {...props}
     >
-      <span className={cn('truncate', displayText ? 'text-foreground' : 'text-muted-foreground')}>
+      <span className={cn('truncate min-w-0 flex-1', displayText ? 'text-foreground' : 'text-muted-foreground')}>
         {displayText || placeholder}
       </span>
       <ChevronDownIcon

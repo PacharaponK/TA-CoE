@@ -40,6 +40,7 @@ export {
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Inbox } from 'lucide-react';
 
 export function Field({
   label,
@@ -53,7 +54,7 @@ export function Field({
   className?: string;
 }) {
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className={cn('flex flex-col gap-1.5 min-w-0 w-full', className)}>
       <label className="text-sm font-medium text-ink-secondary">
         {label}
       </label>
@@ -66,20 +67,20 @@ export function Field({
 export function EmptyState({
   title,
   description,
-  icon = '📋',
+  icon = <Inbox className="h-5 w-5 text-zinc-400" />,
 }: {
   title: string;
   description?: string;
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card py-14 px-6 text-center shadow-soft">
-      <span className="grid h-12 w-12 place-items-center rounded-full bg-muted text-[22px]">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-md py-14 px-6 text-center shadow-lg animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
+      <span className="grid h-12 w-12 place-items-center rounded-full bg-white/5 border border-zinc-800">
         {icon}
       </span>
-      <span className="text-title font-semibold text-foreground">{title}</span>
+      <span className="text-base font-semibold text-white">{title}</span>
       {description && (
-        <span className="max-w-sm text-sm text-muted-foreground">
+        <span className="max-w-sm text-xs text-zinc-400">
           {description}
         </span>
       )}

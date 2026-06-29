@@ -9,14 +9,14 @@ export const STATUS_LABEL: Record<QueueStatus, string> = {
 
 // tinted badge classes — status dots use the decorative sticker palette
 export const STATUS_BADGE: Record<QueueStatus, string> = {
-  waiting: 'bg-canvas-soft text-ink-muted border border-hairline',
-  checking: 'bg-[#e7f1fc] text-primary border border-[#cfe3f9]',
-  passed: 'bg-[#e8f7eb] text-accent-green border border-[#cdeed4]',
-  failed: 'bg-[#fdf0e8] text-accent-orange border border-[#f6dcc9]',
+  waiting: 'bg-zinc-900/50 text-zinc-400 border border-white/5',
+  checking: 'bg-blue-500/10 text-primary border border-blue-500/20',
+  passed: 'bg-accent-green/10 text-accent-green border border-accent-green/20',
+  failed: 'bg-accent-orange/10 text-accent-orange border border-accent-orange/20',
 };
 
 export const STATUS_DOT: Record<QueueStatus, string> = {
-  waiting: 'bg-ink-faint',
+  waiting: 'bg-zinc-500',
   checking: 'bg-primary',
   passed: 'bg-accent-green',
   failed: 'bg-accent-orange',

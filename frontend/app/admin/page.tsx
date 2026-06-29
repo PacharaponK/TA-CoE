@@ -17,6 +17,7 @@ import { useRealtime } from '@/lib/useRealtime';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry, Student } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Search, Sparkles } from 'lucide-react';
 
 // ── Student search picker ─────────────────────────────────────────
 function StudentPicker({
@@ -75,7 +76,7 @@ function StudentPicker({
   // ── selected state ──
   if (selected) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-primary/40 bg-[#e7f1fc] px-3 py-2">
+      <div className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/40 px-3 py-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
             {selected.firstName} {selected.surname}
@@ -105,7 +106,7 @@ function StudentPicker({
 
   // ── search state ──
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className={cn("relative", open && "z-30")}>
       <Input
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); setCursor(-1); }}
@@ -163,16 +164,16 @@ function QueueStats({ entries }: { entries: QueueEntry[] }) {
   return (
     <div className="flex flex-wrap gap-2">
       {checking > 0 && (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e7f1fc] px-3 py-1 text-xs font-semibold text-primary">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-800 border border-zinc-700 px-3 py-1 text-xs font-semibold text-zinc-300">
+          <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
           กำลังตรวจ {checking} คน
         </span>
       )}
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-        <span className="h-1.5 w-1.5 rounded-full bg-ink-faint" />
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1 text-xs font-semibold text-zinc-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-zinc-600" />
         รอ {waiting} คน
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/5 px-3 py-1 text-xs font-semibold text-zinc-400">
         ทั้งหมด {entries.length} คิว
       </span>
     </div>
@@ -254,40 +255,41 @@ function AdminQueue() {
     (!needsCheckpoint || (scope.checkpointId && scope.checkpointId !== '__all__'));
 
   return (
-    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8">
+    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8 relative z-10">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">TA Console</p>
-          <h1 className="mt-1 text-2xl font-bold text-foreground">จัดการคิว</h1>
-          <p className="text-sm text-muted-foreground">เพิ่มนักศึกษาเข้าคิว เรียกตรวจ และบันทึกผล</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">TA Console</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">จัดการคิว</h1>
+          <p className="text-sm text-zinc-400">เพิ่มนักศึกษาเข้าคิว เรียกตรวจ และบันทึกผล</p>
         </div>
         <LogoutButton />
       </div>
 
       {/* Scope picker */}
-      <Card className="shadow-soft">
-        <CardContent className="pt-6">
-          <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
-        </CardContent>
-      </Card>
+      <div className="relative z-20 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 shadow-xl backdrop-blur-md">
+        <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
+      </div>
 
       {!ready ? (
-        <EmptyState icon="🔍" title="เลือกวิชาและ Lab ก่อน"
+        <EmptyState icon={<Search className="h-5 w-5 text-zinc-400" />} title="เลือกวิชาและ Lab ก่อน"
           description="เพื่อเริ่มเพิ่มนักศึกษาเข้าคิว" />
       ) : (
         <>
           {/* Add to queue */}
-          <Card className="shadow-soft">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">เพิ่มเข้าคิว</CardTitle>
+          <div className="relative z-10 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 flex flex-col gap-4 shadow-xl backdrop-blur-md">
+            
+            <div className="pb-1">
+              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">เพิ่มเข้าคิว</h2>
               {needsCheckpoint && (!scope.checkpointId || scope.checkpointId === '__all__') && (
-                <p className="text-sm text-destructive">
-                  Lab นี้มี Checkpoint — กรุณาเลือก Checkpoint ด้านบนก่อน
+                <p className="text-xs text-orange-400 mt-1 animate-pulse">
+                  ⚠ Lab นี้มี Checkpoint — กรุณาเลือก Checkpoint ด้านบนก่อน
                 </p>
               )}
-            </CardHeader>
-            <Separator />
-            <CardContent className="pt-5">
+            </div>
+            
+            <Separator className="bg-white/5" />
+            
+            <div className="pt-2">
               <form onSubmit={handleAdd} className="flex flex-col gap-3">
                 <div className="grid items-end gap-3 sm:grid-cols-[1fr_8rem_auto]">
                   <Field label="ค้นหานักศึกษา">
@@ -302,37 +304,38 @@ function AdminQueue() {
                       value={section}
                       onChange={(e) => setSection(e.target.value)}
                       placeholder="01"
+                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
                     />
                   </Field>
                   <Button
                     type="submit"
                     disabled={!canAdd || adding}
-                    className="self-end rounded-full"
+                    className="self-end rounded-full bg-white text-black hover:bg-white/90 font-semibold"
                   >
                     {adding ? 'กำลังเพิ่ม…' : '+ เพิ่มเข้าคิว'}
                   </Button>
                 </div>
 
                 {alreadyIn && selectedStudent && (
-                  <p className="flex items-center gap-1.5 text-sm text-amber-600">
+                  <p className="flex items-center gap-1.5 text-sm text-amber-500">
                     <span>⚠</span>
                     {selectedStudent.firstName} {selectedStudent.surname} อยู่ในคิวแล้ว
                   </p>
                 )}
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                {error && <p className="text-sm text-red-400">{error}</p>}
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Live queue */}
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-foreground">คิวปัจจุบัน</h2>
+          <section className="flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-2">
+              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">คิวปัจจุบัน</h2>
               <QueueStats entries={entries} />
             </div>
 
             {loading && entries.length === 0 ? <Spinner /> :
-              entries.length === 0 ? <EmptyState icon="🎉" title="ยังไม่มีคิว" /> : (
+              entries.length === 0 ? <EmptyState icon={<Sparkles className="h-5 w-5 text-zinc-400" />} title="ยังไม่มีคิว" /> : (
                 <div className="flex flex-col gap-2">
                   {entries.map((e, i) => (
                     <QueueRow key={e._id} entry={e} index={i + 1} onAction={run} />
@@ -352,31 +355,33 @@ function QueueRow({ entry: e, index, onAction }: {
 }) {
   return (
     <Card className={cn(
-      'relative overflow-hidden transition-shadow',
-      e.status === 'checking' && 'border-primary/30 shadow-soft',
+      'relative overflow-hidden transition-all duration-300 bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm hover:border-zinc-700',
+      e.status === 'checking' && 'border-zinc-500/30 bg-gradient-to-b from-zinc-900/20 to-transparent shadow-lg shadow-white/5',
     )}>
       {e.status === 'checking' && (
-        <span className="absolute inset-y-0 left-0 w-1 rounded-l-xl bg-primary" />
+        <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-white to-zinc-400" />
       )}
       <CardContent className="flex flex-col gap-3 py-4 pl-5 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className={cn(
-            'grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-semibold',
-            e.status === 'checking' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+            'grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm font-bold border',
+            e.status === 'checking' 
+              ? 'bg-zinc-800 text-zinc-200 border-zinc-700 shadow-md' 
+              : 'bg-white/5 text-zinc-400 border-white/5',
           )}>
             {index}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">
+            <p className="truncate text-sm font-semibold text-white">
               {e.studentName}
-              <span className="ml-1.5 font-normal text-muted-foreground">· {e.studentId}</span>
+              <span className="ml-1.5 font-normal text-zinc-400">· {e.studentId}</span>
               {e.attempt > 1 && (
-                <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+                <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-xs font-bold text-amber-400">
                   ครั้งที่ {e.attempt}
                 </span>
               )}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="truncate text-xs text-zinc-400 mt-0.5">
               {e.section && `กลุ่ม ${e.section} · `}
               {e.checkpointName ?? e.labName}
               {' · '}
@@ -391,7 +396,7 @@ function QueueRow({ entry: e, index, onAction }: {
           <StatusBadge status={e.status} />
 
           {e.status === 'waiting' && (
-            <Button size="sm" className="rounded-full"
+            <Button size="sm" className="rounded-full bg-white hover:bg-zinc-200 text-black font-semibold"
               onClick={() => onAction(() => queueApi.call(e._id))}>
               เรียกตรวจ
             </Button>
@@ -412,12 +417,12 @@ function QueueRow({ entry: e, index, onAction }: {
             </>
           )}
 
-          <Button size="sm" variant="ghost"
+          <Button size="sm" variant="ghost" className="text-zinc-500 hover:text-white"
             onClick={() => onAction(() => queueApi.skip(e._id))}>
             ข้าม
           </Button>
           <Button size="sm" variant="ghost"
-            className="text-muted-foreground hover:text-destructive"
+            className="text-zinc-500 hover:text-red-400"
             onClick={() => {
               if (confirm(`ลบคิวของ ${e.studentName}?`))
                 onAction(() => queueApi.remove(e._id));

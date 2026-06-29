@@ -41,12 +41,12 @@ export function ScopePicker({
             onChange({ subjectId: v ?? '', labId: '', checkpointId: '' })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
             <SelectValue placeholder="— เลือกวิชา —" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {subjects.map((s) => (
-              <SelectItem key={s._id} value={s._id}>
+              <SelectItem key={s._id} value={s._id} className="text-zinc-300 hover:bg-white/5 hover:text-white">
                 {s.code} · {s.name}
               </SelectItem>
             ))}
@@ -62,12 +62,12 @@ export function ScopePicker({
             onChange({ ...scope, labId: v ?? '', checkpointId: '' })
           }
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
             <SelectValue placeholder="— เลือก Lab —" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {labs.map((l) => (
-              <SelectItem key={l._id} value={l._id}>
+              <SelectItem key={l._id} value={l._id} className="text-zinc-300 hover:bg-white/5 hover:text-white">
                 {l.name}
               </SelectItem>
             ))}
@@ -84,17 +84,17 @@ export function ScopePicker({
               onChange({ ...scope, checkpointId: v ?? '' })
             }
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
               <SelectValue
                 placeholder={checkpoints.length ? 'ทุก Checkpoint' : '— ไม่มี —'}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
               {checkpoints.length > 0 && (
-                <SelectItem value="__all__">ทุก Checkpoint</SelectItem>
+                <SelectItem value="__all__" className="text-zinc-300 hover:bg-white/5 hover:text-white">ทุก Checkpoint</SelectItem>
               )}
               {checkpoints.map((c) => (
-                <SelectItem key={c._id} value={c._id}>
+                <SelectItem key={c._id} value={c._id} className="text-zinc-300 hover:bg-white/5 hover:text-white">
                   {c.name}
                 </SelectItem>
               ))}

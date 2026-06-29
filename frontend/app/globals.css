@@ -5,26 +5,37 @@
 @layer base {
   /* shadcn/ui CSS variables — HSL triplets (h s% l%) for Tailwind v3 */
   :root {
-    --background: 30 7% 96%;          /* #f6f5f4 warm paper */
-    --foreground: 0 0% 4%;            /* near-black ink */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 4%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
-    --primary: 210 100% 44%;          /* #0075de Notion blue */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 328 90% 89%;         /* #fbcce7 light pink */
-    --secondary-foreground: 0 0% 4%;
-    --muted: 30 7% 96%;               /* canvas-soft */
-    --muted-foreground: 20 4% 37%;    /* #615d59 stone */
-    --accent: 30 7% 96%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 24 100% 43%;       /* #dd5b00 accent-orange */
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;               /* #e6e6e6 hairline */
-    --input: 0 0% 90%;
-    --ring: 210 100% 44%;             /* primary blue for focus rings */
+    --background: 240 10% 3.9%;          /* pure zinc black */
+    --foreground: 0 0% 98%;            /* near-white text */
+    --card: 240 10% 6%;                /* dark zinc card background */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;               /* pure white primary */
+    --primary-foreground: 240 10% 3.9%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 10%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15%;            /* zinc border */
+    --input: 240 3.7% 15%;
+    --ring: 240 5% 60%;
     --radius: 0.5rem;
+
+    /* Custom Notion-style variable overrides for dark theme */
+    --canvas: #000000;
+    --canvas-soft: #09090b;
+    --surface: #18181b;
+    --hairline: #27272a;
+    --ink: #ffffff;
+    --ink-secondary: #e4e4e7;
+    --ink-muted: #a1a1aa;
+    --ink-faint: #52525b;
+    --on-primary: #000000;
   }
 
   html {
@@ -33,13 +44,20 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground relative min-h-screen;
     font-family: var(--font-inter), var(--font-thai), Inter, -apple-system, system-ui, 'Segoe UI', sans-serif;
     font-feature-settings: 'lnum' 1, 'locl' 1;
+    background-image: 
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.015) 0%, transparent 50%),
+      linear-gradient(to right, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    background-attachment: fixed;
   }
 
   ::selection {
-    background: hsl(210 100% 44% / 0.15);
+    background: hsl(0 0% 100% / 0.1);
   }
 
   * {

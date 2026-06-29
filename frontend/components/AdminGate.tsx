@@ -52,39 +52,39 @@ function LoginPage({
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-canvas-soft px-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-transparent px-4">
       <Blobs />
 
-      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8">
+      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8 animate-[fadeSlideUp_0.8s_ease_0.15s_both]">
 
         {/* Brand mark */}
         <div className="flex flex-col items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-primary shadow-elevated">
-            <span className="text-3xl font-extrabold text-white">Q</span>
+          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white text-black shadow-lg">
+            <span className="text-3xl font-extrabold">Q</span>
           </div>
           <div className="text-center">
-            <p className="text-xl font-bold tracking-tight text-foreground">TA@CoE</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">ระบบจัดคิวตรวจ Checkpoint</p>
+            <p className="text-xl font-bold tracking-tight text-white">TA@CoE</p>
+            <p className="mt-0.5 text-sm text-zinc-400">ระบบจัดคิวตรวจ Checkpoint</p>
           </div>
         </div>
 
         {/* Card */}
-        <div className="w-full rounded-2xl border border-border bg-card p-8 shadow-elevated">
+        <div className="w-full rounded-2xl border border-white/10 bg-zinc-950/40 backdrop-blur-md p-8 shadow-2xl">
           <div className="mb-6">
-            <span className="inline-flex items-center rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-widest text-primary">
+            <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-widest text-blue-400">
               TA Console
             </span>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">
               เข้าสู่ระบบ
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-zinc-400">
               กรอกรหัสผ่านที่ใช้ร่วมกันเพื่อจัดการคิว
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="secret" className="text-sm font-medium text-ink-secondary">
+              <Label htmlFor="secret" className="text-sm font-medium text-zinc-300">
                 รหัสผ่าน Admin
               </Label>
               <Input
@@ -94,7 +94,7 @@ function LoginPage({
                 autoFocus
                 onChange={(e) => setSecretInput(e.target.value)}
                 placeholder="••••••••"
-                className="h-10"
+                className="h-10 border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30"
               />
             </div>
 
@@ -107,7 +107,7 @@ function LoginPage({
             <Button
               type="submit"
               disabled={busy || !secret.trim()}
-              className="mt-1 h-10 w-full rounded-full text-sm font-semibold"
+              className="mt-1 h-10 w-full rounded-full text-sm font-semibold bg-white text-black hover:bg-white/90"
             >
               {busy ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบ'}
             </Button>
@@ -117,7 +117,7 @@ function LoginPage({
         {/* Back link */}
         <Link
           href="/"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="flex items-center gap-1.5 text-sm text-zinc-500 transition-colors hover:text-white"
         >
           <span>←</span>
           <span>กลับไปดูคิวนักศึกษา</span>

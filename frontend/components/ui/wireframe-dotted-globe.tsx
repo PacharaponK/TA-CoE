@@ -179,56 +179,18 @@ export default function RotatingEarth({
     }
 
     const rotation: [number, number] = [0, 0]
-    let autoRotate = true
     const rotationSpeed = 0.5
 
     const rotationTimer = d3.timer(() => {
-      if (autoRotate) {
-        rotation[0] += rotationSpeed
-        projection.rotate(rotation)
-        render()
-      }
+      rotation[0] += rotationSpeed
+      projection.rotate(rotation)
+      render()
     })
 
-    const handleMouseDown = (event: MouseEvent) => {
-      autoRotate = false
-      const startX = event.clientX
-      const startY = event.clientY
-      const startRotation: [number, number] = [rotation[0], rotation[1]]
-
-      const handleMouseMove = (e: MouseEvent) => {
-        const sensitivity = 0.5
-        rotation[0] = startRotation[0] + (e.clientX - startX) * sensitivity
-        rotation[1] = Math.max(-90, Math.min(90, startRotation[1] - (e.clientY - startY) * sensitivity))
-        projection.rotate(rotation)
-        render()
-      }
-
-      const handleMouseUp = () => {
-        document.removeEventListener("mousemove", handleMouseMove)
-        document.removeEventListener("mouseup", handleMouseUp)
-        setTimeout(() => { autoRotate = true }, 10)
-      }
-
-      document.addEventListener("mousemove", handleMouseMove)
-      document.addEventListener("mouseup", handleMouseUp)
-    }
-
-    const handleWheel = (event: WheelEvent) => {
-      event.preventDefault()
-      const factor = event.deltaY > 0 ? 0.9 : 1.1
-      projection.scale(Math.max(radius * 0.5, Math.min(radius * 3, projection.scale() * factor)))
-      render()
-    }
-
-    canvas.addEventListener("mousedown", handleMouseDown)
-    canvas.addEventListener("wheel", handleWheel)
     loadWorldData()
 
     return () => {
       rotationTimer.stop()
-      canvas.removeEventListener("mousedown", handleMouseDown)
-      canvas.removeEventListener("wheel", handleWheel)
     }
   }, [width, height, fullscreen, xPosition])
 
@@ -247,9 +209,6 @@ export default function RotatingEarth({
         className={`block bg-black ${rounded ? "rounded-2xl" : ""}`}
         style={{ maxWidth: "100%", height: "auto" }}
       />
-      <div className="absolute bottom-4 left-4 rounded-md bg-black/70 px-2 py-1 text-xs text-white/50">
-        Drag to rotate · Scroll to zoom
-      </div>
     </div>
   )
 }

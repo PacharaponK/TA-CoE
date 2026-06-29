@@ -47,15 +47,15 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
 
         /* ── Notion semantic colours (direct hex, for custom components) ── */
-        canvas: '#ffffff',
-        'canvas-soft': '#f6f5f4',
-        surface: '#ffffff',
-        hairline: '#e6e6e6',
-        ink: '#000000',
-        'ink-secondary': '#31302e',
-        'ink-muted': '#615d59',
-        'ink-faint': '#a39e98',
-        'on-primary': '#ffffff',
+        canvas: 'var(--canvas)',
+        'canvas-soft': 'var(--canvas-soft)',
+        surface: 'var(--surface)',
+        hairline: 'var(--hairline)',
+        ink: 'var(--ink)',
+        'ink-secondary': 'var(--ink-secondary)',
+        'ink-muted': 'var(--ink-muted)',
+        'ink-faint': 'var(--ink-faint)',
+        'on-primary': 'var(--on-primary)',
 
         /* Decorative sticker palette */
         'accent-sky': '#62aef0',

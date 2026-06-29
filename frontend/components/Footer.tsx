@@ -1,17 +1,20 @@
 export function Footer() {
   return (
-    <footer className="mt-xxl border-t border-hairline bg-canvas-soft">
-      <div className="container-page flex flex-col items-center gap-xxs py-xl text-center">
-        <div className="flex items-center gap-xs">
-          <span className="grid h-6 w-6 place-items-center rounded-md bg-primary text-on-primary text-caption font-bold">
-            Q
-          </span>
-          <span className="text-body-sm font-semibold text-ink-secondary">
-            TA@CoE
-          </span>
-        </div>
-        <p className="text-caption text-ink-faint">
+    <footer className="mt-12 border-t border-white/5 bg-transparent">
+      <div className="container-page flex flex-col items-center gap-2 py-8 text-center">
+        <p className="text-xs text-zinc-500">
           ระบบจัดคิว Checkpoint การทดลอง · อัปเดตแบบเรียลไทม์
+        </p>
+        <p className="text-[11px] text-zinc-600 mt-1">
+          Created by{' '}
+          <a
+            href="https://pacharapon-k.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-400 hover:text-white transition-colors underline underline-offset-2"
+          >
+            PacharaponK
+          </a>
         </p>
       </div>
     </footer>

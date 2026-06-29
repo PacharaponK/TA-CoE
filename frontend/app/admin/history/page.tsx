@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { EmptyState, Field, Spinner } from '@/components/ui';
+import { History as HistoryIcon } from 'lucide-react';
 import { queueApi } from '@/lib/api';
 import { useScope } from '@/lib/useScope';
 import { fmtDateTime } from '@/lib/format';
@@ -61,46 +62,48 @@ function History() {
   }
 
   return (
-    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8">
+    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8 relative z-10">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">TA Console</p>
-          <h1 className="mt-1 text-2xl font-bold text-foreground">History</h1>
-          <p className="text-sm text-muted-foreground">ผลการตรวจ Checkpoint ทั้งหมด</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">TA Console</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">History</h1>
+          <p className="text-sm text-zinc-400">ผลการตรวจ Checkpoint ทั้งหมด</p>
         </div>
         <LogoutButton />
       </div>
 
-      <Card className="shadow-soft">
-        <CardContent className="flex flex-col gap-4 pt-6">
+      <div className="relative z-20 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl p-6">
+
+        <div className="flex flex-col gap-4">
           <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
-          <Separator />
+          <Separator className="bg-white/5" />
           <div className="flex flex-wrap items-end justify-between gap-4">
             <Field label="ค้นหารหัสนักศึกษา" className="sm:w-64">
               <Input value={studentId} onChange={(e) => setStudentId(e.target.value)}
-                placeholder="6500001" />
+                placeholder="6500001" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30" />
             </Field>
             <Button onClick={handleExport} disabled={exporting || rows.length === 0}
-              className="rounded-full">
+              className="rounded-full bg-white text-black hover:bg-white/90 font-semibold">
               {exporting ? 'กำลังสร้าง…' : '⬇ Export CSV'}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
 
       {loading && rows.length === 0 ? <Spinner /> :
         rows.length === 0 ? (
-          <EmptyState icon="📊" title="ยังไม่มีประวัติ"
+          <EmptyState icon={<HistoryIcon className="h-5 w-5 text-zinc-400" />} title="ยังไม่มีประวัติ"
             description="ผลการตรวจที่บันทึกแล้วจะปรากฏที่นี่" />
         ) : (
-          <Card className="overflow-hidden shadow-soft">
+          <div className="relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl">
+
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50">
+                <TableRow className="bg-white/5 border-b border-white/5 hover:bg-white/5">
                   {['นักศึกษา', 'Sec', 'วิชา / Lab', 'Checkpoint', 'ครั้งที่', 'ผล', 'เวลาตรวจ', 'ผู้ตรวจ', ''].map((h) => (
-                    <TableHead key={h} className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <TableHead key={h} className="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-zinc-400">
                       {h}
                     </TableHead>
                   ))}
@@ -108,25 +111,25 @@ function History() {
               </TableHeader>
               <TableBody>
                 {rows.map((r) => (
-                  <TableRow key={r._id}>
+                  <TableRow key={r._id} className="border-b border-white/5 hover:bg-white/5">
                     <TableCell>
-                      <div className="font-medium text-foreground">{r.studentName}</div>
-                      <div className="text-xs text-muted-foreground">{r.studentId}</div>
+                      <div className="font-semibold text-white">{r.studentName}</div>
+                      <div className="text-xs text-zinc-400 mt-0.5">{r.studentId}</div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{r.section || '–'}</TableCell>
+                    <TableCell className="text-zinc-300">{r.section || '–'}</TableCell>
                     <TableCell>
-                      <div className="text-foreground">{r.subjectName}</div>
-                      <div className="text-xs text-muted-foreground">{r.labName}</div>
+                      <div className="text-white font-medium">{r.subjectName}</div>
+                      <div className="text-xs text-zinc-400 mt-0.5">{r.labName}</div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{r.checkpointName ?? '–'}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.attempt}</TableCell>
+                    <TableCell className="text-zinc-300">{r.checkpointName ?? '–'}</TableCell>
+                    <TableCell className="text-zinc-300">{r.attempt}</TableCell>
                     <TableCell><StatusBadge status={r.status} /></TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">{fmtDateTime(r.resolvedAt)}</TableCell>
-                    <TableCell className="text-muted-foreground">{r.resolvedBy || '–'}</TableCell>
+                    <TableCell className="whitespace-nowrap text-zinc-400">{fmtDateTime(r.resolvedAt)}</TableCell>
+                    <TableCell className="text-zinc-300">{r.resolvedBy || '–'}</TableCell>
                     <TableCell>
                       {r.status === 'failed' && (
                         <Button size="sm" variant="outline"
-                          className="whitespace-nowrap"
+                          className="whitespace-nowrap rounded-full border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white"
                           onClick={async () => {
                             try { await queueApi.requeue(r._id); await reload(); }
                             catch (e) { setError((e as Error).message); }
@@ -139,7 +142,7 @@ function History() {
                 ))}
               </TableBody>
             </Table>
-          </Card>
+          </div>
         )}
     </main>
   );
