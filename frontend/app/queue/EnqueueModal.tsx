@@ -50,7 +50,9 @@ export function EnqueueModal({
 
   // shared section override (search mode) + checkpoint
   const [section, setSection] = useState('');
-  const [checkpointId, setCheckpointId] = useState<string>(scope.checkpointId);
+  const [checkpointId, setCheckpointId] = useState<string>(
+    scope.checkpointId === '__all__' ? '' : scope.checkpointId,
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -61,12 +63,12 @@ export function EnqueueModal({
 
   // load students on open
   useEffect(() => {
-    if (open) studentsApi.list(true).then(setStudents).catch(() => {});
+    if (open) studentsApi.list(true).then(setStudents).catch(() => { });
   }, [open]);
 
-  // sync checkpoint from parent scope
+  // sync checkpoint from parent scope; treat '__all__' as unset
   useEffect(() => {
-    setCheckpointId(scope.checkpointId);
+    setCheckpointId(scope.checkpointId === '__all__' ? '' : scope.checkpointId);
   }, [scope.checkpointId]);
 
   // auto-fill section from selected student
@@ -168,16 +170,16 @@ export function EnqueueModal({
   // current values for submission depending on mode
   const data = mode === 'search'
     ? selected && {
-        studentId: selected.studentId,
-        studentName: `${selected.firstName} ${selected.surname}`.trim(),
-        section: section.trim() || undefined,
-      }
+      studentId: selected.studentId,
+      studentName: `${selected.firstName} ${selected.surname}`.trim(),
+      section: section.trim() || undefined,
+    }
     : mStudentId.trim() && mName.trim()
       ? {
-          studentId: mStudentId.trim(),
-          studentName: mName.trim(),
-          section: mSection.trim() || undefined,
-        }
+        studentId: mStudentId.trim(),
+        studentName: mName.trim(),
+        section: mSection.trim() || undefined,
+      }
       : null;
 
   const canSubmit =
@@ -330,7 +332,7 @@ export function EnqueueModal({
                       }}
                       onFocus={() => setOpenDd(true)}
                       onKeyDown={handleSearchKey}
-                      placeholder="ค้นหาชื่อ, รหัส, หรือชื่อเล่น…"
+                      placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา"
                       autoComplete="off"
                       className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
                     />

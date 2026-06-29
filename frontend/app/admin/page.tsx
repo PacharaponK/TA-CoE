@@ -287,7 +287,13 @@ function AdminQueue() {
 
   const ready    = scope.subjectId && scope.labId;
   const alreadyIn = selectedStudent
-    ? entries.some((e) => e.studentId === selectedStudent.studentId)
+    ? entries.some(
+        (e) =>
+          e.studentId === selectedStudent.studentId &&
+          (!scope.checkpointId ||
+            scope.checkpointId === '__all__' ||
+            e.checkpointId === scope.checkpointId),
+      )
     : false;
   const canAdd   = ready && selectedStudent && !alreadyIn &&
     (!needsCheckpoint || (scope.checkpointId && scope.checkpointId !== '__all__'));

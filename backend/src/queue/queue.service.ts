@@ -189,6 +189,22 @@ export class QueueService {
    */
   async requeue(id: string) {
     const prev = await this.byId(id);
+
+    // Prevent duplicate if the student already re-joined on their own
+    const existing = await this.queueModel.findOne({
+      studentId: prev.studentId,
+      labId: prev.labId,
+      checkpointId: prev.checkpointId ?? null,
+      status: { $in: ACTIVE },
+    });
+    if (existing) {
+      throw new BadRequestException(
+        'นักศึกษานี้อยู่ในคิวนี้แล้ว (' +
+          (existing.status === 'checking' ? 'กำลังตรวจ' : 'รอตรวจ') +
+          ')',
+      );
+    }
+
     const attempt = await this.nextAttempt(
       prev.studentId,
       String(prev.labId),
