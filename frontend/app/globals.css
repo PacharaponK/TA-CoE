@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* shadcn/ui CSS variables — HSL triplets (h s% l%) for Tailwind v3 */
+  :root {
+    --background: 30 7% 96%;          /* #f6f5f4 warm paper */
+    --foreground: 0 0% 4%;            /* near-black ink */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 210 100% 44%;          /* #0075de Notion blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 328 90% 89%;         /* #fbcce7 light pink */
+    --secondary-foreground: 0 0% 4%;
+    --muted: 30 7% 96%;               /* canvas-soft */
+    --muted-foreground: 20 4% 37%;    /* #615d59 stone */
+    --accent: 30 7% 96%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 24 100% 43%;       /* #dd5b00 accent-orange */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;               /* #e6e6e6 hairline */
+    --input: 0 0% 90%;
+    --ring: 210 100% 44%;             /* primary blue for focus rings */
+    --radius: 0.5rem;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), var(--font-thai), Inter, -apple-system, system-ui, 'Segoe UI', sans-serif;
+    font-feature-settings: 'lnum' 1, 'locl' 1;
+  }
+
+  ::selection {
+    background: hsl(210 100% 44% / 0.15);
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-[1200px] px-4 md:px-6;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sonar {
+  0%   { transform: scale(0.5); opacity: 0.55; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes globe-glow-pulse {
+  0%, 100% { opacity: 0.18; }
+  50%       { opacity: 0.42; }
+}
+
+@keyframes shimmer-slide {
+  0%   { transform: skewX(-12deg) translateX(-200%); }
+  100% { transform: skewX(-12deg) translateX(200%); }
+}
