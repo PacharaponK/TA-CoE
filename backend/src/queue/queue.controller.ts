@@ -8,11 +8,13 @@ import {
   Post,
   Query,
   Res,
+  ServiceUnavailableException,
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AdminGuard } from '../common/admin.guard';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
+import { SystemConfigService } from '../system-config/system-config.service';
 import { QueueService } from './queue.service';
 import { EnqueueDto, ResolveDto } from './dto';
 
@@ -21,6 +23,7 @@ export class QueueController {
   constructor(
     private readonly queue: QueueService,
     private readonly realtime: RealtimeGateway,
+    private readonly systemConfig: SystemConfigService,
   ) {}
 
   // --- Public (viewer) ---
@@ -31,6 +34,20 @@ export class QueueController {
     @Query('checkpointId') checkpointId?: string,
   ) {
     return this.queue.getActive({ subjectId, labId, checkpointId });
+  }
+
+  // --- Public: student self-enqueue (no admin required) ---
+  @Post('join')
+  async join(@Body() dto: EnqueueDto) {
+    const cfg = await this.systemConfig.getConfig();
+    if (cfg.queueDisabled) {
+      throw new ServiceUnavailableException(
+        cfg.disabledMessage || 'ระบบคิวถูกปิดชั่วคราว กรุณารอสักครู่',
+      );
+    }
+    const created = await this.queue.enqueue(dto);
+    this.realtime.emitChange({ type: 'queue' });
+    return created;
   }
 
   // --- Admin: History ---
@@ -73,6 +90,12 @@ export class QueueController {
   @UseGuards(AdminGuard)
   @Post()
   async enqueue(@Body() dto: EnqueueDto) {
+    const cfg = await this.systemConfig.getConfig();
+    if (cfg.queueDisabled) {
+      throw new ServiceUnavailableException(
+        cfg.disabledMessage || 'ระบบคิวถูกปิดชั่วคราว กรุณารอสักครู่',
+      );
+    }
     const created = await this.queue.enqueue(dto);
     this.realtime.emitChange({ type: 'queue' });
     return created;

@@ -12,13 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { EmptyState, Field, Spinner } from '@/components/ui';
-import { queueApi, studentsApi } from '@/lib/api';
+import { queueApi, studentsApi, systemConfigApi } from '@/lib/api';
 import { useScope } from '@/lib/useScope';
 import { useRealtime } from '@/lib/useRealtime';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry, Student } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, ShieldOff, ShieldCheck } from 'lucide-react';
 
 // ── Student search picker ─────────────────────────────────────────
 function StudentPicker({
@@ -217,7 +217,44 @@ function AdminQueue() {
   }, [scope.subjectId, scope.labId]);
 
   useEffect(() => { reload(); }, [reload]);
-  useRealtime(reload);
+
+  // ── Kill-switch ──────────────────────────────────────────────────
+  const [queueDisabled, setQueueDisabled] = useState(false);
+  const [disabledMessage, setDisabledMessage] = useState('');
+  const [killBusy, setKillBusy] = useState(false);
+  const [msgInput, setMsgInput] = useState('');
+
+  useEffect(() => {
+    systemConfigApi.get().then((cfg) => {
+      setQueueDisabled(cfg.queueDisabled);
+      setDisabledMessage(cfg.disabledMessage);
+      setMsgInput(cfg.disabledMessage);
+    }).catch(() => {});
+  }, []);
+
+  const handleSystem = useCallback(
+    (cfg: { queueDisabled: boolean; disabledMessage: string }) => {
+      setQueueDisabled(cfg.queueDisabled);
+      setDisabledMessage(cfg.disabledMessage);
+    },
+    [],
+  );
+
+  useRealtime(reload, handleSystem);
+
+  async function toggleKillSwitch() {
+    setKillBusy(true);
+    setError('');
+    try {
+      const next = !queueDisabled;
+      await systemConfigApi.set(next, next ? msgInput.trim() : '');
+      // state updates via WebSocket broadcast automatically
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setKillBusy(false);
+    }
+  }
 
   async function run(fn: () => Promise<unknown>) {
     setError('');
@@ -264,6 +301,72 @@ function AdminQueue() {
           <p className="text-sm text-zinc-400">เพิ่มนักศึกษาเข้าคิว เรียกตรวจ และบันทึกผล</p>
         </div>
         <LogoutButton />
+      </div>
+
+      {/* ── Kill-switch card ───────────────────────────────── */}
+      <div className={cn(
+        'relative rounded-xl border p-5 shadow-lg transition-all duration-300',
+        queueDisabled
+          ? 'border-red-500/40 bg-red-950/30'
+          : 'border-zinc-800 bg-zinc-900/30 backdrop-blur-md',
+      )}>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Icon + labels */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <span className={cn(
+              'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border',
+              queueDisabled
+                ? 'bg-red-500/20 border-red-500/40'
+                : 'bg-zinc-800 border-zinc-700',
+            )}>
+              {queueDisabled
+                ? <ShieldOff className="h-5 w-5 text-red-400" />
+                : <ShieldCheck className="h-5 w-5 text-zinc-400" />}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white">
+                {queueDisabled ? '⚠️ ระบบคิวถูกปิดชั่วคราว' : 'ระบบคิวทำงานปกติ'}
+              </p>
+              <p className="text-xs text-zinc-500 truncate">
+                {queueDisabled && disabledMessage ? disabledMessage : 'ปิดคิวฉุกเฉินเพื่อแจ้งนักศึกษาทันที'}
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle button */}
+          <Button
+            id="kill-switch-toggle"
+            onClick={toggleKillSwitch}
+            disabled={killBusy}
+            variant={queueDisabled ? 'default' : 'destructive'}
+            size="sm"
+            className={cn(
+              'shrink-0 min-w-[120px] rounded-full text-sm font-semibold transition-all',
+              queueDisabled
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                : 'bg-red-600 hover:bg-red-500 text-white',
+            )}
+          >
+            {killBusy ? 'กำลังบันทึก…' : queueDisabled ? 'เปิดระบบคิว' : 'ปิดระบบคิว'}
+          </Button>
+        </div>
+
+        {/* Optional message input — only shown when enabling or when already disabled */}
+        {(!queueDisabled) && (
+          <div className="mt-4 flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-zinc-400">
+              ข้อความแจ้งนักศึกษา <span className="text-zinc-600">(ไม่บังคับ)</span>
+            </label>
+            <Input
+              id="kill-switch-message"
+              placeholder="เช่น ระบบจะกลับมาในอีก 30 นาที"
+              value={msgInput}
+              onChange={(e) => setMsgInput(e.target.value)}
+              maxLength={300}
+              className="h-9 border-zinc-700 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-red-500/30 text-sm"
+            />
+          </div>
+        )}
       </div>
 
       {/* Scope picker */}

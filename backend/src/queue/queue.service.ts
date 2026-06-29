@@ -54,6 +54,19 @@ export class QueueService {
       throw new BadRequestException('Lab นี้ต้องระบุ Checkpoint');
     }
 
+    // Duplicate prevention: reject if already in active queue
+    const existing = await this.queueModel.findOne({
+      studentId: dto.studentId.trim(),
+      labId: new Types.ObjectId(dto.labId),
+      checkpointId: checkpointId ?? null,
+      status: { $in: ACTIVE },
+    });
+    if (existing) {
+      throw new BadRequestException(
+        'คุณอยู่ในคิวนี้แล้ว (' + (existing.status === 'checking' ? 'กำลังตรวจ' : 'รอตรวจ') + ')',
+      );
+    }
+
     const attempt = await this.nextAttempt(
       dto.studentId,
       dto.labId,

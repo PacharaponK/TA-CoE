@@ -8,19 +8,39 @@ import { ScopePicker } from '@/components/ScopePicker';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState, Spinner } from '@/components/ui';
-import { queueApi } from '@/lib/api';
+import { queueApi, systemConfigApi } from '@/lib/api';
 import { useScope } from '@/lib/useScope';
 import { useRealtime } from '@/lib/useRealtime';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
-import { MousePointerClick, CheckCircle2 } from 'lucide-react';
+import { MousePointerClick, CheckCircle2, Plus, AlertTriangle } from 'lucide-react';
+import { EnqueueModal } from './EnqueueModal';
 
 export default function QueuePage() {
   const { subjects, labs, scope, setScope, loading: scopeLoading } = useScope(true);
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // ── Kill-switch state ────────────────────────────────────────────
+  const [queueDisabled, setQueueDisabled] = useState(false);
+  const [disabledMessage, setDisabledMessage] = useState('');
+
+  useEffect(() => {
+    systemConfigApi.get().then((cfg) => {
+      setQueueDisabled(cfg.queueDisabled);
+      setDisabledMessage(cfg.disabledMessage);
+    }).catch(() => {});
+  }, []);
+
+  const handleSystem = useCallback(
+    (cfg: { queueDisabled: boolean; disabledMessage: string }) => {
+      setQueueDisabled(cfg.queueDisabled);
+      setDisabledMessage(cfg.disabledMessage);
+    },
+    [],
+  );
 
   const reload = useCallback(async () => {
     if (!scope.subjectId || !scope.labId) { setEntries([]); return; }
@@ -44,11 +64,12 @@ export default function QueuePage() {
   }, [scope]);
 
   useEffect(() => { reload(); }, [reload]);
-  useRealtime(reload);
+  useRealtime(reload, handleSystem);
 
   const checking = entries.filter((e) => e.status === 'checking');
   const waiting  = entries.filter((e) => e.status === 'waiting');
   const ready    = scope.subjectId && scope.labId;
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
@@ -138,7 +159,23 @@ export default function QueuePage() {
         ) : loading && entries.length === 0 ? (
           <Spinner />
         ) : (
-          <div className="flex flex-col gap-8">
+          <div className="relative flex flex-col gap-8">
+            {/* ── Kill-switch overlay ─────────────────────────────── */}
+            {queueDisabled && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 rounded-2xl border border-red-500/30 bg-red-950/60 backdrop-blur-sm py-16 px-6 text-center animate-[fadeSlideUp_0.4s_ease_both]">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/20 border border-red-500/40">
+                  <AlertTriangle className="h-7 w-7 text-red-400" />
+                </span>
+                <div>
+                  <p className="text-base font-bold text-red-300">ระบบคิวปิดชั่วคราว</p>
+                  {disabledMessage && (
+                    <p className="mt-1 text-sm text-red-400/80">{disabledMessage}</p>
+                  )}
+                  <p className="mt-2 text-xs text-zinc-500">การเข้าคิวถูกระงับชั่วคราว กรุณารอประกาศจาก TA</p>
+                </div>
+              </div>
+            )}
+
             {/* Now checking */}
             <section className="flex flex-col gap-4">
               <SectionHeader
@@ -235,6 +272,29 @@ export default function QueuePage() {
         )}
       </main>
       <Footer />
+
+      {/* ── Floating action button (student self-enqueue) ── */}
+      {ready && (
+        <>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            aria-label="เข้าร่วมคิว"
+            className="fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-white text-black shadow-elevated transition-transform duration-300 hover:scale-105 active:scale-95 group"
+          >
+            {/* subtle pulse ring */}
+            <span className="pointer-events-none absolute inset-0 rounded-full bg-white/40 animate-ping opacity-20" />
+            <Plus className="h-6 w-6" />
+          </button>
+
+          <EnqueueModal
+            open={modalOpen}
+            scope={scope}
+            labs={labs}
+            onClose={() => setModalOpen(false)}
+          />
+        </>
+      )}
     </div>
   );
 }

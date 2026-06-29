@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Thai } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
+import { SystemBanner } from '@/components/SystemBanner';
 import './globals.css';
 
 // Inter for Latin; Noto Sans Thai for Thai characters.
@@ -35,6 +36,7 @@ export default function RootLayout({
             "var(--font-inter), var(--font-thai), Inter, -apple-system, system-ui, 'Segoe UI', sans-serif",
         }}
       >
+        <SystemBanner />
         {children}
       </body>
     </html>

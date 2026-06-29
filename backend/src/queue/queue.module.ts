@@ -5,6 +5,7 @@ import { Subject, SubjectSchema } from '../subjects/subject.schema';
 import { Lab, LabSchema } from '../labs/lab.schema';
 import { QueueService } from './queue.service';
 import { QueueController } from './queue.controller';
+import { SystemConfigModule } from '../system-config/system-config.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { QueueController } from './queue.controller';
       { name: Subject.name, schema: SubjectSchema },
       { name: Lab.name, schema: LabSchema },
     ]),
+    SystemConfigModule,
   ],
   controllers: [QueueController],
   providers: [QueueService],

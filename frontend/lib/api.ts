@@ -107,6 +107,14 @@ export const queueApi = {
     studentName: string;
     section?: string;
   }) => request<QueueEntry>('POST', '/queue', data, { admin: true }),
+  join: (data: {
+    subjectId: string;
+    labId: string;
+    checkpointId?: string | null;
+    studentId: string;
+    studentName: string;
+    section?: string;
+  }) => request<QueueEntry>('POST', '/queue/join', data),
   call: (id: string) =>
     request<QueueEntry>('PATCH', `/queue/${id}/call`, undefined, {
       admin: true,
@@ -145,6 +153,24 @@ export const queueApi = {
     a.remove();
     window.URL.revokeObjectURL(url);
   },
+};
+
+// ---- System Config (kill-switch) ----
+export interface SystemConfig {
+  queueDisabled: boolean;
+  disabledMessage: string;
+  disabledAt: string | null;
+}
+
+export const systemConfigApi = {
+  get: () => request<SystemConfig>('GET', '/system-config'),
+  set: (queueDisabled: boolean, disabledMessage = '') =>
+    request<SystemConfig>(
+      'PATCH',
+      '/system-config',
+      { queueDisabled, disabledMessage },
+      { admin: true },
+    ),
 };
 
 // ---- Students ----
