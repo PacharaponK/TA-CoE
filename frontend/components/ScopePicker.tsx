@@ -42,7 +42,7 @@ export function ScopePicker({
           }
         >
           <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-            <SelectValue placeholder="— เลือกวิชา —" />
+            <SelectValue placeholder="เลือกวิชา" />
           </SelectTrigger>
           <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {subjects.map((s) => (
@@ -63,7 +63,7 @@ export function ScopePicker({
           }
         >
           <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-            <SelectValue placeholder="— เลือก Lab —" />
+            <SelectValue placeholder="เลือก Lab" />
           </SelectTrigger>
           <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {labs.map((l) => (
@@ -86,7 +86,7 @@ export function ScopePicker({
           >
             <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
               <SelectValue
-                placeholder={checkpoints.length ? 'ทุก Checkpoint' : '— ไม่มี —'}
+                placeholder={checkpoints.length ? 'ทุก Checkpoint' : 'ไม่มี'}
               />
             </SelectTrigger>
             <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">

@@ -95,7 +95,7 @@ export default function QueuePage() {
 
       <NavBar />
       
-      <main className="container-page relative z-10 flex w-full flex-col gap-8 py-8">
+      <main className="container-page relative z-10 flex w-full flex-1 flex-col gap-8 py-8">
         
         {/* Page Header */}
         <div className="flex flex-col gap-2">

@@ -1,23 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
-
-const NAV_LINKS = [
-  { href: '/queue',          label: 'ดูคิว' },
-  { href: '/admin',          label: 'จัดการคิว' },
-  { href: '/admin/subjects', label: 'วิชา & Lab' },
-  { href: '/admin/students', label: 'นักศึกษา' },
-];
+import { NavBar } from '@/components/NavBar';
 
 // Globe is rendered at 72% of viewport width
 const GLOBE_X = '72%';
 
 export default function HeroPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black font-geist">
@@ -116,80 +108,7 @@ export default function HeroPage() {
         <div className="mt-0.5 tracking-wider">CoE · Bangkok</div>
       </div>
 
-      {/* ── Mobile menu ── */}
-      <div
-        className={cn(
-          'absolute inset-x-0 top-0 z-20 overflow-hidden bg-black/98 backdrop-blur-xl',
-          'transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
-          menuOpen ? 'h-screen opacity-100' : 'h-0 opacity-0 pointer-events-none',
-        )}
-      >
-        <div
-          className={cn(
-            'flex h-full flex-col justify-center px-8 transition-all duration-500',
-            menuOpen ? 'translate-y-0 opacity-100 delay-100' : 'translate-y-8 opacity-0',
-          )}
-        >
-          <nav className="flex flex-col gap-8">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="text-3xl font-medium text-white/90 transition-colors hover:text-white"
-                onClick={() => setMenuOpen(false)}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-          <Link
-            href="/queue"
-            onClick={() => setMenuOpen(false)}
-            className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
-          >
-            ดูคิวปัจจุบัน
-          </Link>
-        </div>
-      </div>
-
-      {/* ── Navbar ── */}
-      <nav className="relative z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="text-lg font-semibold tracking-tight text-white sm:text-xl">
-            TA@CoE
-          </Link>
-          <div className="hidden items-center gap-6 md:flex">
-            {NAV_LINKS.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className="text-sm text-white/70 transition-colors hover:text-white"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/queue"
-            className="hidden rounded-lg bg-white px-5 py-2 text-sm font-medium text-black transition-transform hover:scale-105 md:block"
-          >
-            ดูคิว
-          </Link>
-          <button
-            aria-label={menuOpen ? 'ปิดเมนู' : 'เปิดเมนู'}
-            onClick={() => setMenuOpen((v) => !v)}
-            className="relative z-50 flex h-10 w-10 items-center justify-center text-white transition-transform active:scale-90 md:hidden"
-          >
-            <Menu size={22} className={cn('absolute transition-all duration-300',
-              menuOpen ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100')} />
-            <X size={22} className={cn('absolute transition-all duration-300',
-              menuOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0')} />
-          </button>
-        </div>
-      </nav>
+      <NavBar />
 
       {/* ── Hero content ── */}
       <div className="relative z-10 flex h-[calc(100vh-80px)] flex-col justify-between px-6 pb-10 pt-10 sm:pb-12 sm:pt-14 md:px-12 md:pb-14 md:pt-18 lg:px-16">

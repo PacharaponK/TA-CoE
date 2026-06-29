@@ -6,44 +6,78 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const links = [
-  { href: '/queue',            label: 'คิว (นักศึกษา)' },
-  { href: '/admin',            label: 'จัดการคิว' },
-  { href: '/admin/subjects',   label: 'วิชา & Lab' },
-  { href: '/admin/students',   label: 'นักศึกษา' },
-  { href: '/admin/history',    label: 'History' },
-];
-
 export function NavBar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const isAdmin = pathname.startsWith('/admin');
+  const links = isAdmin
+    ? [
+        { href: '/admin',            label: 'จัดการคิว' },
+        { href: '/admin/subjects',   label: 'วิชา & Lab' },
+        { href: '/admin/students',   label: 'นักศึกษา' },
+        { href: '/admin/history',    label: 'History' },
+        { href: '/queue',            label: 'คิว (นักศึกษา)' },
+      ]
+    : [
+        { href: '/',                 label: 'หน้าแรก' },
+        { href: '/queue',            label: 'คิวตรวจ' },
+        { href: '/contact',          label: 'ติดต่อ TA' },
+      ];
+
   return (
     <>
-      <nav className="sticky top-0 z-40 border-b border-white/10 bg-black/60 backdrop-blur-md">
-        <div className="container-page flex h-14 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-white text-black text-sm font-extrabold transition-transform group-hover:scale-105">
-              Q
-            </span>
-            <span className="hidden text-sm font-semibold tracking-tight text-white sm:block">
-              TA@CoE
-            </span>
-          </Link>
+      {/* ── Mobile menu overlay ── */}
+      <div
+        className={cn(
+          'fixed inset-0 z-40 bg-black/98 backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden flex flex-col justify-center px-8',
+          open ? 'h-screen opacity-100' : 'h-0 opacity-0 pointer-events-none',
+        )}
+      >
+        <div className="absolute top-6 left-6 text-sm font-semibold tracking-tight text-white">
+          TA@CoE
+        </div>
+        <div className="flex flex-col gap-8">
+          <nav className="flex flex-col gap-8">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-3xl font-medium text-white/90 transition-colors hover:text-white"
+                onClick={() => setOpen(false)}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          {!isAdmin && (
+            <Link
+              href="/queue"
+              onClick={() => setOpen(false)}
+              className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-medium text-black transition-transform hover:scale-105"
+            >
+              ดูคิวปัจจุบัน
+            </Link>
+          )}
+        </div>
+      </div>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-0.5 overflow-x-auto py-1">
+      {/* ── Navbar ── */}
+      <nav className="relative z-30 flex items-center justify-between px-6 py-5 md:px-12 lg:px-16">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="text-lg font-semibold tracking-tight text-white sm:text-xl shrink-0" onClick={() => setOpen(false)}>
+            TA@CoE
+          </Link>
+          <div className="hidden items-center gap-6 md:flex">
             {links.map((l) => {
-              const active = pathname.startsWith(l.href);
+              const active = l.href === '/' ? pathname === '/' : pathname.startsWith(l.href);
               return (
                 <Link
                   key={l.href}
                   href={l.href}
                   className={cn(
-                    'whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-300',
-                    active
-                      ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.05)]'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5',
+                    'text-sm font-medium transition-colors duration-200',
+                    active ? 'text-white' : 'text-white/70 hover:text-white',
                   )}
                 >
                   {l.label}
@@ -51,80 +85,29 @@ export function NavBar() {
               );
             })}
           </div>
+        </div>
 
-          {/* Mobile menu toggle */}
+        <div className="flex items-center gap-3">
+          {!isAdmin && (
+            <Link
+              href="/queue"
+              className="hidden rounded-lg bg-white px-5 py-2 text-sm font-medium text-black transition-transform hover:scale-105 md:block"
+            >
+              ดูคิว
+            </Link>
+          )}
           <button
             aria-label={open ? 'ปิดเมนู' : 'เปิดเมนู'}
             onClick={() => setOpen((o) => !o)}
-            className="relative z-50 flex h-9 w-9 items-center justify-center rounded-md border border-white/10 text-white transition-transform active:scale-95 md:hidden hover:bg-white/5"
+            className="relative z-50 flex h-10 w-10 items-center justify-center text-white transition-transform active:scale-90 md:hidden"
           >
-            {open ? <X size={18} /> : <Menu size={18} />}
+            <Menu size={22} className={cn('absolute transition-all duration-300',
+              open ? 'rotate-90 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100')} />
+            <X size={22} className={cn('absolute transition-all duration-300',
+              open ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-75 opacity-0')} />
           </button>
         </div>
       </nav>
-
-      {/* Scrim Overlay */}
-      {open && (
-        <div
-          onClick={() => setOpen(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity duration-300 md:hidden"
-        />
-      )}
-
-      {/* Mobile Sidebar */}
-      <div
-        className={cn(
-          'fixed inset-y-0 right-0 z-50 w-72 bg-zinc-950/95 backdrop-blur-xl border-l border-white/10 p-6 shadow-2xl transition-transform duration-300 ease-in-out md:hidden flex flex-col justify-between',
-          open ? 'translate-x-0' : 'translate-x-full',
-        )}
-      >
-        <div className="flex flex-col gap-8">
-          {/* Logo / Title */}
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-white text-black text-sm font-extrabold">
-                Q
-              </span>
-              <span className="text-sm font-semibold tracking-tight text-white">
-                TA@CoE
-              </span>
-            </Link>
-            <button
-              onClick={() => setOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* Vertical navigation links */}
-          <nav className="flex flex-col gap-2">
-            {links.map((l) => {
-              const active = pathname.startsWith(l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className={cn(
-                    'flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200',
-                    active
-                      ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.05)] border-l-2 border-blue-500 pl-3'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent',
-                  )}
-                >
-                  {l.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Info footer inside sidebar */}
-        <div className="text-[10px] text-zinc-600 font-mono tracking-wider">
-          CoE Queue System · Phase 1
-        </div>
-      </div>
     </>
   );
 }

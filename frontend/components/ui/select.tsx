@@ -114,7 +114,7 @@ function SelectTrigger({
 }: React.ComponentProps<'button'> & { size?: 'sm' | 'default' }) {
   const { value, disabled, open, setOpen, labelMap } = React.useContext(SelectCtx);
 
-  let placeholder = '— เลือก —';
+  let placeholder = 'เลือก';
   React.Children.forEach(children, (c) => {
     if (React.isValidElement(c)) {
       const p = c.props as { placeholder?: string };

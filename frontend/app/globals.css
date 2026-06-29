@@ -38,6 +38,28 @@
     --on-primary: #000000;
   }
 
+  /* Webkit custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #52525b; /* zinc-600 */
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a1a1aa; /* zinc-400 */
+  }
+
+  /* Firefox custom scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #52525b transparent;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
