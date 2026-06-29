@@ -16,26 +16,43 @@ export function useScope(activeOnly = false) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [labs, setLabs] = useState<Lab[]>([]);
   const [scope, setScope] = useState<Scope>(EMPTY_SCOPE);
+  const [loading, setLoading] = useState(true);
+  const [subjectsLoaded, setSubjectsLoaded] = useState(false);
 
   const reloadSubjects = useCallback(async () => {
+    setLoading(true);
+    setSubjectsLoaded(false);
     try {
-      setSubjects(await subjectsApi.list(activeOnly));
+      const res = await subjectsApi.list(activeOnly);
+      setSubjects(res);
+      setSubjectsLoaded(true);
+      if (res.length === 0) {
+        setLoading(false);
+      }
     } catch {
       setSubjects([]);
+      setSubjectsLoaded(true);
+      setLoading(false);
     }
   }, [activeOnly]);
 
   const reloadLabs = useCallback(async () => {
     if (!scope.subjectId) {
       setLabs([]);
+      if (subjectsLoaded && subjects.length === 0) {
+        setLoading(false);
+      }
       return;
     }
+    setLoading(true);
     try {
       setLabs(await labsApi.list(scope.subjectId, activeOnly));
     } catch {
       setLabs([]);
+    } finally {
+      setLoading(false);
     }
-  }, [scope.subjectId, activeOnly]);
+  }, [scope.subjectId, activeOnly, subjectsLoaded, subjects.length]);
 
   useEffect(() => {
     reloadSubjects();
@@ -85,5 +102,5 @@ export function useScope(activeOnly = false) {
     }
   }, [scope.labId, scope.checkpointId, labs]);
 
-  return { subjects, labs, scope, setScope, reloadSubjects, reloadLabs };
+  return { subjects, labs, scope, setScope, loading, reloadSubjects, reloadLabs };
 }

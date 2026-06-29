@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
+import Loading from '@/app/loading';
 import { ScopePicker } from '@/components/ScopePicker';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +18,7 @@ import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
 import { MousePointerClick, CheckCircle2 } from 'lucide-react';
 
 export default function QueuePage() {
-  const { subjects, labs, scope, setScope } = useScope(true);
+  const { subjects, labs, scope, setScope, loading: scopeLoading } = useScope(true);
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -126,7 +127,9 @@ export default function QueuePage() {
           <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
         </div>
 
-        {!ready ? (
+        {scopeLoading ? (
+          <Loading />
+        ) : !ready ? (
           <EmptyState
             icon={<MousePointerClick className="h-5 w-5 text-zinc-400" />}
             title="เลือกวิชาและ Lab"

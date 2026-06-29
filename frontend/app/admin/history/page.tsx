@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 import { AdminGate, LogoutButton } from '@/components/AdminGate';
+import Loading from '@/app/loading';
 import { ScopePicker } from '@/components/ScopePicker';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import { fmtDateTime } from '@/lib/format';
 import type { QueueEntry } from '@/lib/types';
 
 function History() {
-  const { subjects, labs, scope, setScope } = useScope(false);
+  const { subjects, labs, scope, setScope, loading: scopeLoading } = useScope(false);
   const [studentId, setStudentId] = useState('');
   const [rows, setRows] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -93,8 +94,11 @@ function History() {
 
       {error && <p className="text-sm text-red-400">{error}</p>}
 
-      {loading && rows.length === 0 ? <Spinner /> :
-        rows.length === 0 ? (
+      {scopeLoading ? (
+        <Loading />
+      ) : loading && rows.length === 0 ? (
+        <Spinner />
+      ) : rows.length === 0 ? (
           <EmptyState icon={<HistoryIcon className="h-5 w-5 text-zinc-400" />} title="ยังไม่มีประวัติ"
             description="ผลการตรวจที่บันทึกแล้วจะปรากฏที่นี่" />
         ) : (
