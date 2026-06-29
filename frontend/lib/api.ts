@@ -3,8 +3,9 @@
 import { getSecret } from './auth';
 import type { Subject, Lab, QueueEntry, QueueStatus, Student } from './types';
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+export const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+).replace(/\/+$/, '');
 
 const API = `${API_BASE}/api`;
 
