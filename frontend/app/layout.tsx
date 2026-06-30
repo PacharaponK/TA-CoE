@@ -30,12 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th" className={`${inter.variable} ${notoThai.variable} ${GeistSans.variable}`}>
-      <body
-        style={{
-          fontFamily:
-            "var(--font-inter), var(--font-thai), Inter, -apple-system, system-ui, 'Segoe UI', sans-serif",
-        }}
-      >
+      <body>
         <SystemBanner />
         {children}
       </body>

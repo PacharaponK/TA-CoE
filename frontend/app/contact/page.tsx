@@ -3,7 +3,7 @@
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
-import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
+import { GlobeBackground } from '@/components/GlobeBackground';
 import { Mail, Clock, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -78,22 +78,7 @@ const SCHEDULE = [
 export default function ContactPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-black font-geist">
-      {/* Globe Background */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-[0.12] select-none">
-        <RotatingEarth width={2560} height={1440} rounded={false} fullscreen xPosition={0.82} />
-      </div>
-
-      {/* Glow behind globe */}
-      <div
-        className="pointer-events-none fixed animate-[globe-glow-pulse_5s_ease_infinite] z-0"
-        style={{
-          width: '80vw',
-          height: '80vh',
-          right: '-20vw',
-          top: '-10vh',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)',
-        }}
-      />
+      <GlobeBackground opacity={0.12} ringCount={0} />
 
       <NavBar />
 

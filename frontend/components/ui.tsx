@@ -96,10 +96,3 @@ export function Spinner() {
   );
 }
 
-export function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-primary">
-      {children}
-    </span>
-  );
-}

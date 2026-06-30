@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
 import { Button, Input, Field } from '@/components/ui';
 import {
   Select,
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { StudentSearchInput } from '@/components/StudentSearchInput';
 import { queueApi, studentsApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import type { Lab, Student } from '@/lib/types';
@@ -37,11 +39,7 @@ export function EnqueueModal({
 
   // search mode
   const [students, setStudents] = useState<Student[]>([]);
-  const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Student | null>(null);
-  const [openDd, setOpenDd] = useState(false);
-  const [cursor, setCursor] = useState(-1);
-  const ddRef = useRef<HTMLDivElement>(null);
 
   // manual mode
   const [mStudentId, setMStudentId] = useState('');
@@ -76,15 +74,6 @@ export function EnqueueModal({
     if (selected?.section) setSection(selected.section);
   }, [selected]);
 
-  // close dropdown on outside click
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (!ddRef.current?.contains(e.target as Node)) setOpenDd(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
   // close on ESC
   useEffect(() => {
     if (!open) return;
@@ -105,26 +94,9 @@ export function EnqueueModal({
     };
   }, [open]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return students
-      .filter(
-        (s) =>
-          s.studentId.includes(q) ||
-          s.firstName.toLowerCase().includes(q) ||
-          s.surname.toLowerCase().includes(q) ||
-          s.nickname.toLowerCase().includes(q),
-      )
-      .slice(0, 8);
-  }, [query, students]);
-
   function reset() {
     setMode('search');
-    setQuery('');
     setSelected(null);
-    setOpenDd(false);
-    setCursor(-1);
     setMStudentId('');
     setMName('');
     setMSection('');
@@ -135,30 +107,6 @@ export function EnqueueModal({
   function handleClose() {
     reset();
     onClose();
-  }
-
-  function handleSearchKey(e: React.KeyboardEvent) {
-    if (!openDd || results.length === 0) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setCursor((c) => Math.min(c + 1, results.length - 1));
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setCursor((c) => Math.max(c - 1, 0));
-    }
-    if (e.key === 'Enter' && cursor >= 0) {
-      e.preventDefault();
-      pick(results[cursor]);
-    }
-    if (e.key === 'Escape') setOpenDd(false);
-  }
-
-  function pick(s: Student) {
-    setSelected(s);
-    setQuery('');
-    setOpenDd(false);
-    setCursor(-1);
   }
 
   // effective checkpoint to send (null when "all" or not required)
@@ -242,19 +190,7 @@ export function EnqueueModal({
             className="rounded-full p-1 text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"
             aria-label="ปิด"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X className="h-5 w-5" />
           </button>
         </div>
 
@@ -287,97 +223,12 @@ export function EnqueueModal({
           {mode === 'search' ? (
             <>
               <Field label="ค้นหานักศึกษา">
-                {selected ? (
-                  <div className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800/40 px-3 py-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {selected.firstName} {selected.surname}
-                        {selected.nickname && (
-                          <span className="ml-1.5 font-normal text-zinc-400">
-                            ({selected.nickname})
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-zinc-500">{selected.studentId}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelected(null)}
-                      className="shrink-0 rounded-full p-0.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-white"
-                      aria-label="ล้าง"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                ) : (
-                  <div ref={ddRef} className="relative">
-                    <Input
-                      value={query}
-                      onChange={(e) => {
-                        setQuery(e.target.value);
-                        setOpenDd(true);
-                        setCursor(-1);
-                      }}
-                      onFocus={() => setOpenDd(true)}
-                      onKeyDown={handleSearchKey}
-                      placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา"
-                      autoComplete="off"
-                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                    />
-                    {openDd && results.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/95 shadow-elevated backdrop-blur-xl">
-                        {results.map((s, i) => (
-                          <button
-                            key={s._id}
-                            type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              pick(s);
-                            }}
-                            onMouseEnter={() => setCursor(i)}
-                            className={cn(
-                              'flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors',
-                              cursor === i
-                                ? 'bg-white/5'
-                                : 'hover:bg-white/5',
-                              i > 0 && 'border-t border-white/5',
-                            )}
-                          >
-                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-bold text-white">
-                              {s.firstName.charAt(0)}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-white">
-                                {s.firstName} {s.surname}
-                                {s.nickname && (
-                                  <span className="ml-1.5 text-zinc-500">
-                                    ({s.nickname})
-                                  </span>
-                                )}
-                              </p>
-                              <p className="text-xs text-zinc-500">
-                                {s.studentId}
-                                {s.section && ` · Sec ${s.section}`}
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <StudentSearchInput
+                  students={students}
+                  selected={selected}
+                  onSelect={setSelected}
+                  placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา"
+                />
               </Field>
 
               {selected && (

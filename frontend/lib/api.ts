@@ -1,7 +1,7 @@
 'use client';
 
 import { getSecret } from './auth';
-import type { Subject, Lab, QueueEntry, QueueStatus, Student } from './types';
+import type { Subject, Lab, QueueEntry, QueueStatus, Student, SystemConfig } from './types';
 
 export const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
@@ -156,12 +156,6 @@ export const queueApi = {
 };
 
 // ---- System Config (kill-switch) ----
-export interface SystemConfig {
-  queueDisabled: boolean;
-  disabledMessage: string;
-  disabledAt: string | null;
-}
-
 export const systemConfigApi = {
   get: () => request<SystemConfig>('GET', '/system-config'),
   set: (queueDisabled: boolean, disabledMessage = '') =>
@@ -187,4 +181,4 @@ export const studentsApi = {
     request<unknown>('DELETE', `/students/${id}`, undefined, { admin: true }),
 };
 
-export type { Subject, Lab, QueueEntry, QueueStatus, Student };
+export type { Subject, Lab, QueueEntry, QueueStatus, Student, SystemConfig };

@@ -14,7 +14,7 @@ import { useRealtime } from '@/lib/useRealtime';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
+import { GlobeBackground } from '@/components/GlobeBackground';
 import { MousePointerClick, CheckCircle2, Plus, AlertTriangle } from 'lucide-react';
 import { EnqueueModal } from './EnqueueModal';
 
@@ -73,47 +73,7 @@ export default function QueuePage() {
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
-      {/* ── Globe Background ── */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-[0.16] select-none">
-        <RotatingEarth width={2560} height={1440} rounded={false} fullscreen xPosition={0.82} />
-      </div>
-
-      {/* Subtle neutral radial glow behind the globe */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[radial-gradient(circle_at_80%_40%,rgba(255,255,255,0.02),transparent_50%)]" />
-
-      {/* Neutral radial glow behind the globe */}
-      <div
-        className="pointer-events-none fixed animate-[globe-glow-pulse_5s_ease-in-out_infinite] z-0"
-        style={{
-          left: '82%',
-          top: '50%',
-          width: '60vmin',
-          height: '60vmin',
-          marginLeft: '-30vmin',
-          marginTop: '-30vmin',
-          borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)',
-        }}
-      />
-
-      {/* Radar rings */}
-      {[0, 1].map((i) => (
-        <div
-          key={i}
-          className="pointer-events-none fixed rounded-full border animate-[sonar_5s_ease-out_infinite] z-0"
-          style={{
-            left: '82%',
-            top: '50%',
-            width: '40vmin',
-            height: '40vmin',
-            marginLeft: '-20vmin',
-            marginTop: '-20vmin',
-            borderColor: 'rgba(255,255,255,0.05)',
-            animationDelay: `${i * 2.5}s`,
-          }}
-        />
-      ))}
+      <GlobeBackground />
 
       <NavBar />
       

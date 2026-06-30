@@ -1,18 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { NavBar } from '@/components/NavBar';
-import { Footer } from '@/components/Footer';
-import { AdminGate, LogoutButton } from '@/components/AdminGate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState, Field, Spinner } from '@/components/ui';
 import { studentsApi } from '@/lib/api';
+import { useAction } from '@/lib/useAction';
 import { cn } from '@/lib/utils';
 import { Users } from 'lucide-react';
 import type { Student } from '@/lib/types';
+import { StudentForm } from './_components/StudentForm';
 
 // ── Stats chip ────────────────────────────────────────────────────
 function StatChip({ label, value }: { label: string; value: number }) {
@@ -47,11 +46,7 @@ function Manager() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  async function run(fn: () => Promise<unknown>) {
-    setError('');
-    try { await fn(); await reload(); }
-    catch (e) { setError((e as Error).message); }
-  }
+  const run = useAction(reload, setError);
 
   // derived
   const years = useMemo(() => [...new Set(students.map(s => s.year))].sort(), [students]);
@@ -84,13 +79,9 @@ function Manager() {
     <main className="container-page flex w-full flex-1 flex-col gap-8 py-8">
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">TA Console</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">นักศึกษา</h1>
-          <p className="text-sm text-zinc-400">จัดการข้อมูลนักศึกษาในระบบ</p>
-        </div>
-        <LogoutButton />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-white">นักศึกษา</h1>
+        <p className="mt-1 text-sm text-zinc-400">จัดการข้อมูลนักศึกษาในระบบ</p>
       </div>
 
       {error && <p className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
@@ -284,141 +275,6 @@ function RowActions({
   );
 }
 
-// ── Student form (add / edit) ─────────────────────────────────────
-function StudentForm({
-  initial,
-  onSubmit,
-  onCancel,
-}: {
-  initial?: Student;
-  onSubmit: (data: Partial<Student>) => Promise<void>;
-  onCancel: () => void;
-}) {
-  const [studentId, setStudentId] = useState(initial?.studentId ?? '');
-  const [firstName, setFirstName] = useState(initial?.firstName ?? '');
-  const [surname, setSurname] = useState(initial?.surname ?? '');
-  const [nickname, setNickname] = useState(initial?.nickname ?? '');
-  const [year, setYear] = useState(String(initial?.year ?? ''));
-  const [section, setSection] = useState(initial?.section ?? '');
-  const [email, setEmail] = useState(initial?.email ?? '');
-  const [phone, setPhone] = useState(initial?.phone ?? '');
-  const [isActive, setIsActive] = useState(initial?.isActive ?? true);
-  const [busy, setBusy] = useState(false);
-
-  const isEdit = !!initial;
-  const canSubmit = studentId.trim() && firstName.trim() && surname.trim() && year;
-
-  return (
-    <Card className="border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl relative overflow-hidden">
-
-      <CardContent className="pt-5">
-        <p className="mb-4 text-sm font-semibold text-white">
-          {isEdit ? 'แก้ไขข้อมูลนักศึกษา' : 'เพิ่มนักศึกษาใหม่'}
-        </p>
-        <form
-          className="grid gap-4"
-          onSubmit={async e => {
-            e.preventDefault();
-            setBusy(true);
-            try {
-              await onSubmit({
-                studentId: studentId.trim(),
-                firstName: firstName.trim(),
-                surname: surname.trim(),
-                nickname: nickname.trim(),
-                year: Number(year),
-                section: section.trim(),
-                email: email.trim(),
-                phone: phone.trim(),
-                isActive,
-              });
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {/* Row 1 */}
-          <div className="grid gap-3 sm:grid-cols-[10rem_1fr_1fr_5rem]">
-            <Field label="รหัสนักศึกษา *">
-              <Input
-                value={studentId}
-                onChange={e => setStudentId(e.target.value)}
-                placeholder="6710110005"
-                disabled={isEdit}
-                className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-              />
-            </Field>
-            <Field label="ชื่อ *">
-              <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="กรธัช" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30" />
-            </Field>
-            <Field label="นามสกุล *">
-              <Input value={surname} onChange={e => setSurname(e.target.value)} placeholder="สุขสวัสดิ์" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30" />
-            </Field>
-            <Field label="ชั้นปี *">
-              <Input
-                type="number"
-                min={1}
-                max={6}
-                value={year}
-                onChange={e => setYear(e.target.value)}
-                placeholder="3"
-                className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30"
-              />
-            </Field>
-          </div>
-
-          {/* Row 2 */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label="ชื่อเล่น">
-              <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="โบ" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
-            </Field>
-            <Field label="Section">
-              <Input value={section} onChange={e => setSection(e.target.value)} placeholder="01" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
-            </Field>
-            <Field label="อีเมล">
-              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="student@example.com" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
-            </Field>
-          </div>
-
-          {/* Row 3 */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Field label="เบอร์โทร">
-              <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30" />
-            </Field>
-          </div>
-
-          <label className="flex items-center gap-2 text-sm text-zinc-400">
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={e => setIsActive(e.target.checked)}
-            />
-            นักศึกษายังใช้งานระบบอยู่
-          </label>
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={busy || !canSubmit} className="rounded-full bg-white text-black hover:bg-white/90 font-semibold">
-              {busy ? 'กำลังบันทึก…' : 'บันทึก'}
-            </Button>
-            <Button type="button" variant="ghost" className="text-zinc-500 hover:text-white" onClick={onCancel}>
-              ยกเลิก
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Page shell ────────────────────────────────────────────────────
 export default function StudentsPage() {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <NavBar />
-      <AdminGate redirectTo="/admin">
-        <Manager />
-        <Footer />
-      </AdminGate>
-    </div>
-  );
+  return <Manager />;
 }

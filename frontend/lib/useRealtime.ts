@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE } from './api';
-import type { SystemConfig } from './api';
+import type { SystemConfig } from './types';
 
 /**
  * Subscribe to live queue changes. The backend emits `queue:changed`

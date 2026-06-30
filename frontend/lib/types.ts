@@ -42,6 +42,12 @@ export interface Student {
 
 export type QueueStatus = 'waiting' | 'checking' | 'passed' | 'failed';
 
+export interface SystemConfig {
+  queueDisabled: boolean;
+  disabledMessage: string;
+  disabledAt: string | null;
+}
+
 export interface QueueEntry {
   _id: string;
   subjectId: string;
