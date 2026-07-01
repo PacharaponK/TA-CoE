@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Lab, LabDocument } from './lab.schema';
-import { CreateLabDto, UpdateLabDto } from './dto';
+import { CreateLabDto, SetLabPauseDto, UpdateLabDto } from './dto';
 import { Subject, SubjectDocument } from '../subjects/subject.schema';
 import {
   QueueEntry,
@@ -76,6 +76,25 @@ export class LabsService {
 
     const updated = await this.labModel
       .findByIdAndUpdate(id, patch, { new: true })
+      .lean()
+      .exec();
+    if (!updated) throw new NotFoundException('ไม่พบ Lab นี้');
+    return updated;
+  }
+
+  /** TA pauses/resumes student self-join for this lab. Manual admin add is unaffected. */
+  async setPaused(id: string, dto: SetLabPauseDto) {
+    const updated = await this.labModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            queuePaused: dto.queuePaused,
+            pausedMessage: dto.queuePaused ? (dto.pausedMessage ?? '') : '',
+          },
+        },
+        { new: true },
+      )
       .lean()
       .exec();
     if (!updated) throw new NotFoundException('ไม่พบ Lab นี้');

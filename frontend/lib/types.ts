@@ -21,6 +21,8 @@ export interface Lab {
   order: number;
   checkpoints: Checkpoint[];
   isActive: boolean;
+  queuePaused: boolean;
+  pausedMessage: string;
   createdAt?: string;
   updatedAt?: string;
 }

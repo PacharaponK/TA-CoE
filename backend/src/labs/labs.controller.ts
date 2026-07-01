@@ -12,7 +12,7 @@ import {
 import { AdminGuard } from '../common/admin.guard';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { LabsService } from './labs.service';
-import { CreateLabDto, UpdateLabDto } from './dto';
+import { CreateLabDto, SetLabPauseDto, UpdateLabDto } from './dto';
 
 @Controller('labs')
 export class LabsController {
@@ -48,6 +48,14 @@ export class LabsController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateLabDto) {
     const updated = await this.labs.update(id, dto);
+    this.realtime.emitChange({ type: 'lab' });
+    return updated;
+  }
+
+  @UseGuards(AdminGuard)
+  @Patch(':id/pause')
+  async setPaused(@Param('id') id: string, @Body() dto: SetLabPauseDto) {
+    const updated = await this.labs.setPaused(id, dto);
     this.realtime.emitChange({ type: 'lab' });
     return updated;
   }

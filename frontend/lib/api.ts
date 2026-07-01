@@ -82,6 +82,13 @@ export const labsApi = {
     request<Lab>('POST', '/labs', data, { admin: true }),
   update: (id: string, data: Partial<Lab>) =>
     request<Lab>('PATCH', `/labs/${id}`, data, { admin: true }),
+  setPaused: (id: string, queuePaused: boolean, pausedMessage = '') =>
+    request<Lab>(
+      'PATCH',
+      `/labs/${id}/pause`,
+      { queuePaused, pausedMessage },
+      { admin: true },
+    ),
   remove: (id: string) =>
     request<unknown>('DELETE', `/labs/${id}`, undefined, { admin: true }),
 };

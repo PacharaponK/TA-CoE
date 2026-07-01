@@ -45,7 +45,7 @@ export class QueueController {
         cfg.disabledMessage || 'ระบบคิวถูกปิดชั่วคราว กรุณารอสักครู่',
       );
     }
-    const created = await this.queue.enqueue(dto);
+    const created = await this.queue.enqueue(dto, { selfJoin: true });
     this.realtime.emitChange({ type: 'queue' });
     return created;
   }

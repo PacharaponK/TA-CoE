@@ -14,9 +14,10 @@ import { QueueStats } from './_components/QueueStats';
 import { QueueRow } from './_components/QueueRow';
 import { EnqueueForm } from './_components/EnqueueForm';
 import { KillSwitchCard } from './_components/KillSwitchCard';
+import { LabPauseCard } from './_components/LabPauseCard';
 
 function AdminQueue() {
-  const { subjects, labs, scope, setScope, loading: scopeLoading } = useScope(true);
+  const { subjects, labs, scope, setScope, loading: scopeLoading, reloadLabs } = useScope(true);
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,7 +64,12 @@ function AdminQueue() {
     [],
   );
 
-  useRealtime(reload, handleSystem);
+  const handleChange = useCallback(() => {
+    reload();
+    reloadLabs();
+  }, [reload, reloadLabs]);
+
+  useRealtime(handleChange, handleSystem);
 
   const run = useAction(reload, setError);
 
@@ -90,6 +96,8 @@ function AdminQueue() {
         />
       ) : (
         <>
+          <LabPauseCard lab={selectedLab} onChanged={reloadLabs} />
+
           <EnqueueForm
             scope={scope}
             needsCheckpoint={needsCheckpoint}

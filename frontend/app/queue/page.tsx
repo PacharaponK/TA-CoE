@@ -19,7 +19,7 @@ import { MousePointerClick, CheckCircle2, Plus, AlertTriangle } from 'lucide-rea
 import { EnqueueModal } from './EnqueueModal';
 
 export default function QueuePage() {
-  const { subjects, labs, scope, setScope, loading: scopeLoading } = useScope(true);
+  const { subjects, labs, scope, setScope, loading: scopeLoading, reloadLabs } = useScope(true);
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -64,11 +64,19 @@ export default function QueuePage() {
   }, [scope]);
 
   useEffect(() => { reload(); }, [reload]);
-  useRealtime(reload, handleSystem);
+
+  const handleChange = useCallback(() => {
+    reload();
+    reloadLabs();
+  }, [reload, reloadLabs]);
+
+  useRealtime(handleChange, handleSystem);
 
   const checking = entries.filter((e) => e.status === 'checking');
   const waiting  = entries.filter((e) => e.status === 'waiting');
   const ready    = scope.subjectId && scope.labId;
+  const selectedLab = labs.find((l) => l._id === scope.labId);
+  const labPaused = !!selectedLab?.queuePaused;
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
@@ -236,19 +244,37 @@ export default function QueuePage() {
       {/* ── Floating action button (student self-enqueue) ── */}
       {ready && (
         <>
+          {labPaused && (
+            <div className="fixed bottom-24 right-6 z-50 max-w-[220px] rounded-xl border border-orange-500/40 bg-orange-950/90 px-4 py-3 text-right text-xs text-orange-200 shadow-lg backdrop-blur-sm animate-[fadeSlideUp_0.3s_ease_both]">
+              ⏸ TA ปิดรับเข้าคิว Lab นี้ชั่วคราว
+              {selectedLab?.pausedMessage && (
+                <p className="mt-1 text-orange-300/80">{selectedLab.pausedMessage}</p>
+              )}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => setModalOpen(true)}
+            disabled={labPaused}
             aria-label="เข้าร่วมคิว"
-            className="fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full bg-white text-black shadow-elevated transition-transform duration-300 hover:scale-105 active:scale-95 group"
+            aria-disabled={labPaused}
+            className={cn(
+              'fixed bottom-6 right-6 z-50 grid h-14 w-14 place-items-center rounded-full shadow-elevated transition-transform duration-300 group',
+              labPaused
+                ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                : 'bg-white text-black hover:scale-105 active:scale-95',
+            )}
           >
             {/* subtle pulse ring */}
-            <span className="pointer-events-none absolute inset-0 rounded-full bg-white/40 animate-ping opacity-20" />
+            {!labPaused && (
+              <span className="pointer-events-none absolute inset-0 rounded-full bg-white/40 animate-ping opacity-20" />
+            )}
             <Plus className="h-6 w-6" />
           </button>
 
           <EnqueueModal
-            open={modalOpen}
+            open={modalOpen && !labPaused}
             scope={scope}
             labs={labs}
             onClose={() => setModalOpen(false)}

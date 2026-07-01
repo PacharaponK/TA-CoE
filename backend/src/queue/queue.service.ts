@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -30,8 +31,12 @@ export class QueueService {
     @InjectModel(Lab.name) private readonly labModel: Model<LabDocument>,
   ) {}
 
-  /** TA adds a student to the queue (manual entry). */
-  async enqueue(dto: EnqueueDto) {
+  /**
+   * Adds a student to the queue. Pass `selfJoin: true` for the student
+   * self-service endpoint — this is the only path blocked by a lab's
+   * `queuePaused` flag; TA manual add always goes through.
+   */
+  async enqueue(dto: EnqueueDto, opts: { selfJoin?: boolean } = {}) {
     const subject = await this.subjectModel.findById(dto.subjectId).lean();
     if (!subject) throw new NotFoundException('ไม่พบวิชา');
 
@@ -39,6 +44,11 @@ export class QueueService {
     if (!lab) throw new NotFoundException('ไม่พบ Lab');
     if (String(lab.subjectId) !== String(dto.subjectId)) {
       throw new BadRequestException('Lab นี้ไม่ได้อยู่ในวิชาที่เลือก');
+    }
+    if (opts.selfJoin && lab.queuePaused) {
+      throw new ServiceUnavailableException(
+        lab.pausedMessage || 'TA ปิดรับเข้าคิวสำหรับ Lab นี้ชั่วคราว กรุณารอสักครู่',
+      );
     }
 
     let checkpointId: Types.ObjectId | null = null;

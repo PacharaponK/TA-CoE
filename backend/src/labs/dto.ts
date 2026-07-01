@@ -47,6 +47,16 @@ export class CreateLabDto {
   isActive?: boolean;
 }
 
+export class SetLabPauseDto {
+  @IsBoolean()
+  queuePaused: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  pausedMessage?: string;
+}
+
 export class UpdateLabDto {
   @IsOptional()
   @IsString()

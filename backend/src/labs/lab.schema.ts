@@ -32,6 +32,14 @@ export class Lab {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  /** When true, students cannot self-join this lab's queue (TA can still add manually). */
+  @Prop({ default: false })
+  queuePaused: boolean;
+
+  /** Optional message shown to students when this lab's queue is paused. */
+  @Prop({ type: String, default: '' })
+  pausedMessage: string;
 }
 
 export const LabSchema = SchemaFactory.createForClass(Lab);
