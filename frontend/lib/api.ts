@@ -176,9 +176,9 @@ export const systemConfigApi = {
 
 // ---- Students ----
 export const studentsApi = {
-  list: (activeOnly = false) =>
+  list: (activeOnly = false, subjectId?: string) =>
     request<Student[]>('GET', '/students', undefined, {
-      query: { activeOnly: activeOnly ? 'true' : undefined },
+      query: { activeOnly: activeOnly ? 'true' : undefined, subjectId },
     }),
   create: (data: Partial<Student>) =>
     request<Student>('POST', '/students', data, { admin: true }),

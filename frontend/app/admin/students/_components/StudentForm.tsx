@@ -5,14 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui';
-import type { Student } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import type { Student, Subject } from '@/lib/types';
 
 export function StudentForm({
   initial,
+  subjects,
   onSubmit,
   onCancel,
 }: {
   initial?: Student;
+  subjects: Subject[];
   onSubmit: (data: Partial<Student>) => Promise<void>;
   onCancel: () => void;
 }) {
@@ -25,7 +28,14 @@ export function StudentForm({
   const [email, setEmail] = useState(initial?.email ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
+  const [subjectIds, setSubjectIds] = useState<string[]>(initial?.subjectIds ?? []);
   const [busy, setBusy] = useState(false);
+
+  function toggleSubject(id: string) {
+    setSubjectIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
 
   const isEdit = !!initial;
   const canSubmit = studentId.trim() && firstName.trim() && surname.trim() && year;
@@ -46,6 +56,7 @@ export function StudentForm({
         email: email.trim(),
         phone: phone.trim(),
         isActive,
+        subjectIds,
       });
     } finally {
       setBusy(false);
@@ -105,6 +116,33 @@ export function StudentForm({
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" className={inputCn} />
             </Field>
           </div>
+
+          <Field label="วิชาที่ลงทะเบียน" hint="กำหนดว่านักศึกษาคนนี้จะถูกค้นเจอเมื่อเพิ่มเข้าคิวของวิชาไหนได้บ้าง">
+            {subjects.length === 0 ? (
+              <p className="text-xs text-zinc-500">ยังไม่มีวิชาในระบบ</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {subjects.map((subj) => {
+                  const checked = subjectIds.includes(subj._id);
+                  return (
+                    <button
+                      key={subj._id}
+                      type="button"
+                      onClick={() => toggleSubject(subj._id)}
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                        checked
+                          ? 'border-white/20 bg-white text-black'
+                          : 'border-zinc-700 bg-zinc-900/40 text-zinc-400 hover:text-white',
+                      )}
+                    >
+                      {subj.code}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </Field>
 
           <label className="flex items-center gap-2 text-sm text-zinc-400">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />

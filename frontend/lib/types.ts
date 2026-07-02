@@ -38,6 +38,8 @@ export interface Student {
   email: string;
   phone: string;
   isActive: boolean;
+  /** Subjects this student is enrolled in. */
+  subjectIds: string[];
   createdAt?: string;
   updatedAt?: string;
 }

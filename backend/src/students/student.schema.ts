@@ -1,10 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type StudentDocument = HydratedDocument<Student>;
 
 @Schema({ timestamps: true, collection: 'students' })
 export class Student {
+  /** Subjects this student is enrolled in — gates which subject's queue they can be added to. */
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Subject' }], default: [] })
+  subjectIds: Types.ObjectId[];
+
   @Prop({ required: true, trim: true })
   firstName: string;
 

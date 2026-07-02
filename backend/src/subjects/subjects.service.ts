@@ -12,6 +12,7 @@ import {
   QueueEntry,
   QueueEntryDocument,
 } from '../queue/queue-entry.schema';
+import { Student, StudentDocument } from '../students/student.schema';
 
 @Injectable()
 export class SubjectsService {
@@ -21,6 +22,8 @@ export class SubjectsService {
     @InjectModel(Lab.name) private readonly labModel: Model<LabDocument>,
     @InjectModel(QueueEntry.name)
     private readonly queueModel: Model<QueueEntryDocument>,
+    @InjectModel(Student.name)
+    private readonly studentModel: Model<StudentDocument>,
   ) {}
 
   async findAll(activeOnly = false) {
@@ -59,9 +62,13 @@ export class SubjectsService {
   async remove(id: string) {
     const deleted = await this.subjectModel.findByIdAndDelete(id).lean().exec();
     if (!deleted) throw new NotFoundException('ไม่พบวิชานี้');
-    // cascade: remove the subject's labs and queue entries
+    // cascade: remove the subject's labs and queue entries, and drop the
+    // enrollment reference from any student still pointing at it
     await this.labModel.deleteMany({ subjectId: id }).exec();
     await this.queueModel.deleteMany({ subjectId: id }).exec();
+    await this.studentModel
+      .updateMany({ subjectIds: id }, { $pull: { subjectIds: id } })
+      .exec();
     return { deleted: true, id };
   }
 }

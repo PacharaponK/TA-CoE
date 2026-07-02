@@ -6,11 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState, Field, Spinner } from '@/components/ui';
-import { studentsApi } from '@/lib/api';
+import { studentsApi, subjectsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
 import { cn } from '@/lib/utils';
 import { Users } from 'lucide-react';
-import type { Student } from '@/lib/types';
+import type { Student, Subject } from '@/lib/types';
 import { StudentForm } from './_components/StudentForm';
 
 // ── Stats chip ────────────────────────────────────────────────────
@@ -26,6 +26,7 @@ function StatChip({ label, value }: { label: string; value: number }) {
 // ── Main manager ──────────────────────────────────────────────────
 function Manager() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,6 +34,7 @@ function Manager() {
   const [search, setSearch] = useState('');
   const [filterYear, setFilterYear] = useState('');
   const [filterSection, setFilterSection] = useState('');
+  const [filterSubject, setFilterSubject] = useState('');
 
   // form state
   const [showForm, setShowForm] = useState(false);
@@ -45,6 +47,12 @@ function Manager() {
   }, []);
 
   useEffect(() => { reload(); }, [reload]);
+  useEffect(() => { subjectsApi.list().then(setSubjects).catch(() => {}); }, []);
+
+  const subjectById = useMemo(
+    () => new Map(subjects.map((s) => [s._id, s])),
+    [subjects],
+  );
 
   const run = useAction(reload, setError);
 
@@ -57,6 +65,7 @@ function Manager() {
     return students.filter(s => {
       if (filterYear && String(s.year) !== filterYear) return false;
       if (filterSection && s.section !== filterSection) return false;
+      if (filterSubject && !s.subjectIds.includes(filterSubject)) return false;
       if (!q) return true;
       return (
         s.studentId.includes(q) ||
@@ -65,7 +74,7 @@ function Manager() {
         s.nickname.toLowerCase().includes(q)
       );
     });
-  }, [students, search, filterYear, filterSection]);
+  }, [students, search, filterYear, filterSection, filterSubject]);
 
   const byYear = useMemo(() =>
     years.map(y => ({ year: y, count: students.filter(s => s.year === y).length })),
@@ -139,6 +148,23 @@ function Manager() {
           </Field>
         )}
 
+        {subjects.length > 0 && (
+          <Field label="วิชา" className="w-40">
+            <select
+              value={filterSubject}
+              onChange={e => setFilterSubject(e.target.value)}
+              className={cn(
+                'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
+                'text-sm text-white shadow-sm transition-colors outline-none',
+                'focus:ring-1 focus:ring-zinc-500/30',
+              )}
+            >
+              <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
+              {subjects.map(subj => <option key={subj._id} value={subj._id} className="bg-zinc-900 text-white">{subj.code}</option>)}
+            </select>
+          </Field>
+        )}
+
         <Button
           variant="outline"
           className="self-end rounded-full border-white/15 text-zinc-300 hover:bg-white/5 hover:text-white"
@@ -151,6 +177,7 @@ function Manager() {
       {/* Add form */}
       {showForm && !editStudent && (
         <StudentForm
+          subjects={subjects}
           onCancel={closeForm}
           onSubmit={async data => {
             await run(() => studentsApi.create(data));
@@ -186,6 +213,7 @@ function Manager() {
               <StudentForm
                 key={s._id}
                 initial={s}
+                subjects={subjects}
                 onCancel={closeForm}
                 onSubmit={async data => {
                   await run(() => studentsApi.update(s._id, data));
@@ -231,6 +259,16 @@ function Manager() {
                     <span className="text-sm text-zinc-400">{s.section || '–'}</span>
                     <RowActions s={s} onEdit={() => openEdit(s)} onDelete={() => run(() => studentsApi.remove(s._id))} />
                   </div>
+
+                  {s.subjectIds.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5 sm:pl-[calc(3rem+10rem+0.75rem*2)]">
+                      {s.subjectIds.map((id) => (
+                        <Badge key={id} variant="outline" className="text-[10px] text-zinc-400 border-zinc-700">
+                          {subjectById.get(id)?.code ?? '—'}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )

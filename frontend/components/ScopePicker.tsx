@@ -37,12 +37,13 @@ export function ScopePicker({
       <Field label="วิชา">
         <Select
           value={scope.subjectId || undefined}
+          disabled={!subjects.length}
           onValueChange={(v) =>
             onChange({ subjectId: v ?? '', labId: '', checkpointId: '' })
           }
         >
           <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-            <SelectValue placeholder="เลือกวิชา" />
+            <SelectValue placeholder={subjects.length ? 'เลือกวิชา' : 'ไม่มีวิชา'} />
           </SelectTrigger>
           <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {subjects.map((s) => (
@@ -57,13 +58,13 @@ export function ScopePicker({
       <Field label="Lab">
         <Select
           value={scope.labId || undefined}
-          disabled={!scope.subjectId}
+          disabled={!scope.subjectId || !labs.length}
           onValueChange={(v) =>
             onChange({ ...scope, labId: v ?? '', checkpointId: '' })
           }
         >
           <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-            <SelectValue placeholder="เลือก Lab" />
+            <SelectValue placeholder={labs.length ? 'เลือก Lab' : 'ไม่มี Lab'} />
           </SelectTrigger>
           <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
             {labs.map((l) => (

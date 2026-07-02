@@ -59,10 +59,12 @@ export function EnqueueModal({
   const checkpoints = selectedLab?.checkpoints ?? [];
   const needsCheckpoint = checkpoints.length > 0;
 
-  // load students on open
+  // load students enrolled in this subject on open
   useEffect(() => {
-    if (open) studentsApi.list(true).then(setStudents).catch(() => { });
-  }, [open]);
+    if (open && scope.subjectId) {
+      studentsApi.list(true, scope.subjectId).then(setStudents).catch(() => { });
+    }
+  }, [open, scope.subjectId]);
 
   // sync checkpoint from parent scope; treat '__all__' as unset
   useEffect(() => {

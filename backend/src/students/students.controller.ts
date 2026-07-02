@@ -11,8 +11,11 @@ export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Get()
-  findAll(@Query('activeOnly') activeOnly?: string) {
-    return this.studentsService.findAll(activeOnly === 'true');
+  findAll(
+    @Query('activeOnly') activeOnly?: string,
+    @Query('subjectId') subjectId?: string,
+  ) {
+    return this.studentsService.findAll(activeOnly === 'true', subjectId);
   }
 
   @Get(':id')

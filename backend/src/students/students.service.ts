@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Student, StudentDocument } from './student.schema';
 import { CreateStudentDto, UpdateStudentDto } from './dto';
 
@@ -10,8 +10,9 @@ export class StudentsService {
     @InjectModel(Student.name) private studentModel: Model<StudentDocument>,
   ) {}
 
-  findAll(activeOnly = false) {
-    const filter = activeOnly ? { isActive: true } : {};
+  findAll(activeOnly = false, subjectId?: string) {
+    const filter: Record<string, unknown> = activeOnly ? { isActive: true } : {};
+    if (subjectId) filter.subjectIds = new Types.ObjectId(subjectId);
     return this.studentModel.find(filter).sort({ studentId: 1 }).exec();
   }
 

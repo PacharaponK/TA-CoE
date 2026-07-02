@@ -32,8 +32,9 @@ function AdminQueue() {
   const ready = scope.subjectId && scope.labId;
 
   useEffect(() => {
-    studentsApi.list(true).then(setStudents).catch(() => {});
-  }, []);
+    if (!scope.subjectId) { setStudents([]); return; }
+    studentsApi.list(true, scope.subjectId).then(setStudents).catch(() => {});
+  }, [scope.subjectId]);
 
   useEffect(() => {
     systemConfigApi.get().then((cfg) => {
