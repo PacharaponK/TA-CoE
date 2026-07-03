@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from './ui';
-import { clearSecret, getSecret, setSecret } from '@/lib/auth';
-import { queueApi } from '@/lib/api';
+import { clearToken, getToken, setToken } from '@/lib/auth';
+import { authApi } from '@/lib/api';
+import { TaContext } from '@/lib/ta-context';
+import type { CurrentTa } from '@/lib/types';
 
-async function validate(): Promise<boolean> {
-  if (!getSecret()) return false;
+async function validate(): Promise<CurrentTa | null> {
+  if (!getToken()) return null;
   try {
-    await queueApi.history({});
-    return true;
+    return await authApi.me();
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -36,9 +37,10 @@ function Blobs() {
 function LoginPage({
   onLogin,
 }: {
-  onLogin: (secret: string) => Promise<string | null>;
+  onLogin: (username: string, password: string) => Promise<string | null>;
 }) {
-  const [secret, setSecretInput] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -46,7 +48,7 @@ function LoginPage({
     e.preventDefault();
     setBusy(true);
     setError('');
-    const err = await onLogin(secret.trim());
+    const err = await onLogin(username.trim(), password);
     setBusy(false);
     if (err) setError(err);
   }
@@ -76,21 +78,35 @@ function LoginPage({
               เข้าสู่ระบบ
             </h1>
             <p className="mt-1 text-sm text-zinc-400">
-              กรอกรหัสผ่านที่ใช้ร่วมกันเพื่อจัดการคิว
+              กรอกบัญชี TA ของคุณเพื่อจัดการคิว
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="secret" className="text-sm font-medium text-zinc-300">
-                รหัสผ่าน Admin
+              <Label htmlFor="username" className="text-sm font-medium text-zinc-300">
+                ชื่อผู้ใช้
               </Label>
               <Input
-                id="secret"
-                type="password"
-                value={secret}
+                id="username"
+                type="text"
+                value={username}
                 autoFocus
-                onChange={(e) => setSecretInput(e.target.value)}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="username"
+                className="h-10 border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password" className="text-sm font-medium text-zinc-300">
+                รหัสผ่าน
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="h-10 border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-blue-500/30"
               />
@@ -104,7 +120,7 @@ function LoginPage({
 
             <Button
               type="submit"
-              disabled={busy || !secret.trim()}
+              disabled={busy || !username.trim() || !password}
               className="mt-1 h-10 w-full rounded-full text-sm font-semibold bg-white text-black hover:bg-white/90"
             >
               {busy ? 'กำลังตรวจสอบ…' : 'เข้าสู่ระบบ'}
@@ -135,9 +151,13 @@ export function AdminGate({
 }) {
   const router = useRouter();
   const [state, setState] = useState<'loading' | 'in' | 'out'>('loading');
+  const [ta, setTa] = useState<CurrentTa | null>(null);
 
   useEffect(() => {
-    validate().then((ok) => setState(ok ? 'in' : 'out'));
+    validate().then((result) => {
+      setTa(result);
+      setState(result ? 'in' : 'out');
+    });
   }, []);
 
   useEffect(() => {
@@ -146,15 +166,17 @@ export function AdminGate({
     }
   }, [state, redirectTo, router]);
 
-  async function handleLogin(secret: string): Promise<string | null> {
-    setSecret(secret);
-    const ok = await validate();
-    if (ok) {
+  async function handleLogin(username: string, password: string): Promise<string | null> {
+    try {
+      const { token, ta: loggedInTa } = await authApi.login(username, password);
+      setToken(token);
+      setTa(loggedInTa);
       setState('in');
       return null;
+    } catch (e) {
+      clearToken();
+      return (e as Error).message || 'เข้าสู่ระบบไม่สำเร็จ';
     }
-    clearSecret();
-    return 'รหัสผ่าน Admin ไม่ถูกต้อง';
   }
 
   if (state === 'loading' || (state === 'out' && redirectTo)) {
@@ -169,7 +191,7 @@ export function AdminGate({
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  return <>{children}</>;
+  return <TaContext.Provider value={ta}>{children}</TaContext.Provider>;
 }
 
 export function LogoutButton() {
@@ -178,7 +200,7 @@ export function LogoutButton() {
       variant="ghost"
       size="sm"
       onClick={() => {
-        clearSecret();
+        clearToken();
         window.location.reload();
       }}
     >

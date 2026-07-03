@@ -13,6 +13,8 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AdminGuard } from '../common/admin.guard';
+import { CurrentTa } from '../common/current-ta.decorator';
+import { TaTokenPayload } from '../common/ta-token.types';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { SystemConfigService } from '../system-config/system-config.service';
 import { QueueService } from './queue.service';
@@ -119,8 +121,12 @@ export class QueueController {
 
   @UseGuards(AdminGuard)
   @Patch(':id/resolve')
-  async resolve(@Param('id') id: string, @Body() dto: ResolveDto) {
-    const res = await this.queue.resolve(id, dto);
+  async resolve(
+    @Param('id') id: string,
+    @Body() dto: ResolveDto,
+    @CurrentTa() ta: TaTokenPayload,
+  ) {
+    const res = await this.queue.resolve(id, dto, ta.displayName);
     this.realtime.emitChange({ type: 'queue' });
     return res;
   }

@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { clearSecret } from '@/lib/auth';
+import { clearToken } from '@/lib/auth';
+import { useCurrentTa } from '@/lib/ta-context';
 import {
   LayoutList,
   History,
   BookOpen,
   Users,
+  UserCircle,
+  Settings,
   ExternalLink,
   LogOut,
   Menu,
@@ -17,23 +20,28 @@ import {
 } from 'lucide-react';
 
 const NAV = [
-  { href: '/admin',          label: 'จัดการคิว',  icon: LayoutList, exact: true },
-  { href: '/admin/history',  label: 'History',    icon: History,    exact: false },
-  { href: '/admin/subjects', label: 'วิชา & Lab', icon: BookOpen,   exact: false },
-  { href: '/admin/students', label: 'นักศึกษา',  icon: Users,      exact: false },
+  { href: '/admin',          label: 'จัดการคิว',  icon: LayoutList, exact: true,  adminOnly: false },
+  { href: '/admin/history',  label: 'History',    icon: History,    exact: false, adminOnly: false },
+  { href: '/admin/subjects', label: 'วิชา & ปฏิบัติการ', icon: BookOpen,   exact: false, adminOnly: false },
+  { href: '/admin/students', label: 'นักศึกษา',  icon: Users,      exact: false, adminOnly: false },
+  { href: '/admin/profile',  label: 'โปรไฟล์ของฉัน', icon: UserCircle, exact: false, adminOnly: false },
+  { href: '/admin/settings', label: 'ตั้งค่า',    icon: Settings,   exact: false, adminOnly: true },
 ] as const;
 
 function NavLinks({ onNav }: { onNav?: () => void }) {
   const pathname = usePathname();
+  const ta = useCurrentTa();
 
   function active(href: string, exact: boolean) {
     return exact ? pathname === href : pathname.startsWith(href);
   }
 
   function logout() {
-    clearSecret();
+    clearToken();
     window.location.reload();
   }
+
+  const nav = NAV.filter((item) => !item.adminOnly || ta?.role === 'admin');
 
   return (
     <div className="flex flex-col h-full">
@@ -56,7 +64,7 @@ function NavLinks({ onNav }: { onNav?: () => void }) {
 
       {/* Primary nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV.map(({ href, label, icon: Icon, exact }) => {
+        {nav.map(({ href, label, icon: Icon, exact }) => {
           const isActive = active(href, exact);
           return (
             <Link
@@ -85,8 +93,21 @@ function NavLinks({ onNav }: { onNav?: () => void }) {
         })}
       </nav>
 
-      {/* Footer: cross-role + logout */}
+      {/* Footer: identity + cross-role + logout */}
       <div className="border-t border-zinc-800/70 px-3 py-4 space-y-0.5">
+        {ta && (
+          <div className="flex items-center gap-2 px-3 pb-3 mb-1 border-b border-zinc-800/70">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-bold text-white">
+              {ta.displayName.charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-white">{ta.displayName}</p>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500">
+                {ta.role === 'admin' ? 'Admin' : 'TA'}
+              </p>
+            </div>
+          </div>
+        )}
         <Link
           href="/queue"
           onClick={onNav}

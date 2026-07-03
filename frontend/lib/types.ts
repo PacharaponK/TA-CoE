@@ -46,6 +46,59 @@ export interface Student {
 
 export type QueueStatus = 'waiting' | 'checking' | 'passed' | 'failed';
 
+export type TaRole = 'admin' | 'ta';
+
+/** The logged-in TA's identity, from POST /auth/login or GET /auth/me. */
+export interface CurrentTa {
+  id: string;
+  username: string;
+  displayName: string;
+  role: TaRole;
+}
+
+/** One row of a TA's weekly duty schedule, shown on the public Contact page. */
+export interface ScheduleEntry {
+  day: string;
+  time: string;
+  note: string;
+}
+
+/** A TA account row as managed from the Settings page (Admin only). */
+export interface TaAccount {
+  _id: string;
+  username: string;
+  displayName: string;
+  role: TaRole;
+  isActive: boolean;
+  title: string;
+  email: string;
+  facebookName: string;
+  facebookUrl: string;
+  igName: string;
+  location: string;
+  statusText: string;
+  available: boolean;
+  showOnContactPage: boolean;
+  schedule: ScheduleEntry[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** Public-safe TA profile for the Contact page — from GET /tas/public (no auth). */
+export interface PublicTaProfile {
+  id: string;
+  displayName: string;
+  title: string;
+  email: string;
+  facebookName: string;
+  facebookUrl: string;
+  igName: string;
+  location: string;
+  statusText: string;
+  available: boolean;
+  schedule: ScheduleEntry[];
+}
+
 export interface SystemConfig {
   queueDisabled: boolean;
   disabledMessage: string;

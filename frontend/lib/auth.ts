@@ -1,22 +1,22 @@
 'use client';
 
-const KEY = 'lab-queue-admin-secret';
+const KEY = 'lab-queue-ta-token';
 
-export function getSecret(): string {
+export function getToken(): string {
   if (typeof window === 'undefined') return '';
   return window.localStorage.getItem(KEY) ?? '';
 }
 
-export function setSecret(secret: string) {
+export function setToken(token: string) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(KEY, secret);
+  window.localStorage.setItem(KEY, token);
 }
 
-export function clearSecret() {
+export function clearToken() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(KEY);
 }
 
 export function isLoggedIn(): boolean {
-  return getSecret().length > 0;
+  return getToken().length > 0;
 }

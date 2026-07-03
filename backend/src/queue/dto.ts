@@ -34,9 +34,4 @@ export class EnqueueDto {
 export class ResolveDto {
   @IsIn(['passed', 'failed'])
   result: 'passed' | 'failed';
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  resolvedBy?: string;
 }

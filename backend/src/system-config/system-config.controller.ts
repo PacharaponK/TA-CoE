@@ -6,6 +6,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AdminGuard } from '../common/admin.guard';
+import { RolesGuard } from '../common/roles.guard';
+import { Roles } from '../common/roles.decorator';
 import { SystemConfigService } from './system-config.service';
 import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
@@ -37,8 +39,9 @@ export class SystemConfigController {
     };
   }
 
-  /** Admin-only — toggle the kill-switch. */
-  @UseGuards(AdminGuard)
+  /** Admin role only — toggle the kill-switch. */
+  @UseGuards(AdminGuard, RolesGuard)
+  @Roles('admin')
   @Patch()
   async setConfig(@Body() dto: SetQueueDisabledDto) {
     const cfg = await this.svc.setQueueDisabled(

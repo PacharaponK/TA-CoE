@@ -4,28 +4,31 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { TaTokenPayload } from './ta-token.types';
 
 /**
- * Phase 1 auth: a single shared secret (no per-user login).
- * The TA (Admin) sends it in the `x-admin-secret` header. Read-only
- * (viewer) endpoints are left unguarded.
+ * Phase 2 auth: named TA accounts. The client sends `Authorization: Bearer <jwt>`
+ * (issued by POST /auth/login). Read-only (viewer) endpoints are left unguarded.
+ * Verified payload is attached to `req.ta` for downstream use (see CurrentTa, RolesGuard).
  */
 @Injectable()
 export class AdminGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const req = context.switchToHttp().getRequest<Request>();
-    const provided =
-      (req.headers['x-admin-secret'] as string | undefined) ?? '';
-    const expected = process.env.ADMIN_SECRET ?? '';
+  constructor(private readonly jwt: JwtService) {}
 
-    if (!expected) {
-      throw new UnauthorizedException(
-        'ADMIN_SECRET is not configured on the server',
-      );
-    }
-    if (provided !== expected) {
-      throw new UnauthorizedException('รหัสผ่าน Admin ไม่ถูกต้อง');
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest<Request>();
+    const header = req.headers['authorization'];
+    const token = header?.startsWith('Bearer ') ? header.slice(7) : undefined;
+
+    if (!token) throw new UnauthorizedException('กรุณาเข้าสู่ระบบ');
+
+    try {
+      const payload = await this.jwt.verifyAsync<TaTokenPayload>(token);
+      (req as Request & { ta: TaTokenPayload }).ta = payload;
+    } catch {
+      throw new UnauthorizedException('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
     }
     return true;
   }

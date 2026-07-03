@@ -100,7 +100,10 @@ async function run() {
   ]);
 
   console.log('✅ Seeded demo data.');
-  console.log('   ADMIN_SECRET to log in as TA:', process.env.ADMIN_SECRET ?? '(set one in .env)');
+  console.log(
+    '   Note: TA accounts are bootstrapped by the backend itself (not this script) —',
+    'start it once and log in as username "admin" with your ADMIN_SECRET.',
+  );
   await mongoose.disconnect();
 }
 

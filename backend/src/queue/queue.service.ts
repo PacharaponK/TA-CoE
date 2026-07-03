@@ -179,15 +179,15 @@ export class QueueService {
     return entry.toObject();
   }
 
-  /** Record the result (passed / failed). */
-  async resolve(id: string, dto: ResolveDto) {
+  /** Record the result (passed / failed). `resolvedBy` comes from the authenticated TA. */
+  async resolve(id: string, dto: ResolveDto, resolvedBy: string) {
     const entry = await this.byId(id);
     if (entry.status === 'passed' || entry.status === 'failed') {
       throw new BadRequestException('คิวนี้บันทึกผลไปแล้ว');
     }
     entry.status = dto.result;
     entry.resolvedAt = new Date();
-    entry.resolvedBy = dto.resolvedBy ?? null;
+    entry.resolvedBy = resolvedBy;
     if (!entry.calledAt) entry.calledAt = new Date();
     await entry.save();
     return entry.toObject();

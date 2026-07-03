@@ -1,7 +1,19 @@
 'use client';
 
-import { getSecret } from './auth';
-import type { Subject, Lab, QueueEntry, QueueStatus, Student, SystemConfig } from './types';
+import { getToken } from './auth';
+import type {
+  Subject,
+  Lab,
+  QueueEntry,
+  QueueStatus,
+  Student,
+  SystemConfig,
+  CurrentTa,
+  TaAccount,
+  TaRole,
+  PublicTaProfile,
+  ScheduleEntry,
+} from './types';
 
 export const API_BASE = (
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
@@ -29,7 +41,7 @@ async function request<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
-  if (opts.admin) headers['x-admin-secret'] = getSecret();
+  if (opts.admin) headers['Authorization'] = `Bearer ${getToken()}`;
 
   const res = await fetch(buildUrl(path, opts.query), {
     method,
@@ -130,8 +142,8 @@ export const queueApi = {
     request<QueueEntry>('PATCH', `/queue/${id}/skip`, undefined, {
       admin: true,
     }),
-  resolve: (id: string, result: 'passed' | 'failed', resolvedBy?: string) =>
-    request<QueueEntry>('PATCH', `/queue/${id}/resolve`, { result, resolvedBy }, {
+  resolve: (id: string, result: 'passed' | 'failed') =>
+    request<QueueEntry>('PATCH', `/queue/${id}/resolve`, { result }, {
       admin: true,
     }),
   requeue: (id: string) =>
@@ -146,7 +158,7 @@ export const queueApi = {
     checkpointId?: string;
   }) => {
     const res = await fetch(buildUrl('/queue/export', q), {
-      headers: { 'x-admin-secret': getSecret() },
+      headers: { Authorization: `Bearer ${getToken()}` },
       cache: 'no-store',
     });
     if (!res.ok) throw new Error('ดาวน์โหลด CSV ไม่สำเร็จ');
@@ -188,4 +200,66 @@ export const studentsApi = {
     request<unknown>('DELETE', `/students/${id}`, undefined, { admin: true }),
 };
 
-export type { Subject, Lab, QueueEntry, QueueStatus, Student, SystemConfig };
+// ---- Auth ----
+export const authApi = {
+  login: (username: string, password: string) =>
+    request<{ token: string; ta: CurrentTa }>('POST', '/auth/login', {
+      username,
+      password,
+    }),
+  me: () => request<CurrentTa>('GET', '/auth/me', undefined, { admin: true }),
+};
+
+// ---- TA accounts (Admin role only, except *OwnProfile which any TA can call) ----
+type TaProfileValues = {
+  title: string;
+  email: string;
+  facebookName: string;
+  facebookUrl: string;
+  igName: string;
+  location: string;
+  statusText: string;
+  available: boolean;
+  showOnContactPage: boolean;
+  schedule: ScheduleEntry[];
+};
+
+export const tasApi = {
+  list: () => request<TaAccount[]>('GET', '/tas', undefined, { admin: true }),
+  /** Public Contact-page listing — no auth required. */
+  public: () => request<PublicTaProfile[]>('GET', '/tas/public'),
+  create: (
+    data: {
+      username: string;
+      password: string;
+      displayName: string;
+      role: TaRole;
+    } & Partial<TaProfileValues>,
+  ) => request<TaAccount>('POST', '/tas', data, { admin: true }),
+  update: (
+    id: string,
+    data: Partial<
+      { displayName: string; role: TaRole; isActive: boolean; password: string } & TaProfileValues
+    >,
+  ) => request<TaAccount>('PATCH', `/tas/${id}`, data, { admin: true }),
+  remove: (id: string) =>
+    request<unknown>('DELETE', `/tas/${id}`, undefined, { admin: true }),
+  /** Any authenticated TA — their own contact profile. */
+  getOwnProfile: () => request<TaAccount>('GET', '/tas/me', undefined, { admin: true }),
+  updateOwnProfile: (data: Partial<{ displayName: string } & TaProfileValues>) =>
+    request<TaAccount>('PATCH', '/tas/me', data, { admin: true }),
+};
+
+export type {
+  Subject,
+  Lab,
+  QueueEntry,
+  QueueStatus,
+  Student,
+  SystemConfig,
+  CurrentTa,
+  TaAccount,
+  TaRole,
+  PublicTaProfile,
+  ScheduleEntry,
+};
