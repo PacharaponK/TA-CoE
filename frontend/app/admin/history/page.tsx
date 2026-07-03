@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EmptyState, Field, Spinner } from "@/components/ui";
-import { History as HistoryIcon } from "lucide-react";
+import { History as HistoryIcon, FileDown, Search, SlidersHorizontal } from "lucide-react";
 import { queueApi } from "@/lib/api";
 import { useScope } from "@/lib/useScope";
 import { fmtDateTime } from "@/lib/format";
@@ -132,18 +132,29 @@ function History() {
   }
 
   return (
-    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8 relative z-10">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          History
-        </h1>
-        <p className="mt-1 text-sm text-zinc-400">
-          ผลการตรวจ Checkpoint ทั้งหมด
-        </p>
+    <main className="container-page flex w-full flex-1 flex-col gap-8 py-8 relative z-10 animate-[fadeIn_0.5s_ease_both]">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-gradient-to-r from-zinc-950 via-zinc-900/40 to-zinc-950 p-6 sm:p-8 shadow-2xl animate-[fadeSlideDown_0.6s_ease_both]">
+        <div className="absolute top-0 right-0 h-48 w-48 bg-zinc-500/10 rounded-full blur-[80px]" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-zinc-300 shadow-lg backdrop-blur-md">
+              <HistoryIcon className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                ประวัติการตรวจ
+              </h1>
+              <p className="mt-1.5 text-sm text-zinc-400 font-medium">
+                ผลการตรวจ Checkpoint และการสรุปผลปฏิบัติการทั้งหมดในระบบ
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Scope picker */}
-      <div className="relative z-20 rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl p-6">
+      <div className="relative z-20 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 shadow-xl backdrop-blur-sm">
         <ScopePicker
           subjects={subjects}
           labs={labs}
@@ -153,22 +164,26 @@ function History() {
       </div>
 
       {/* Search + export */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-md p-5">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 backdrop-blur-sm p-5 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <Field label="ค้นหารหัสนักศึกษา" className="sm:w-64">
-            <Input
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              placeholder="6610110190"
-              className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+              <Input
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                placeholder="6610110190..."
+                className="pl-9 border-zinc-800 bg-black/40 text-white placeholder-zinc-500 focus-visible:ring-zinc-500/20 focus-visible:border-zinc-700 hover:border-zinc-800 transition-colors"
+              />
+            </div>
           </Field>
           <Button
             onClick={handleExport}
             disabled={exporting || rows.length === 0}
-            className="rounded-full bg-white text-black hover:bg-white/90 font-semibold"
+            className="h-9 px-5 rounded-lg border-zinc-850 bg-zinc-900/30 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all font-semibold flex items-center gap-2"
           >
-            {exporting ? "กำลังสร้าง…" : "⬇ Export CSV"}
+            <FileDown className="h-4 w-4" />
+            {exporting ? "กำลังสร้าง…" : "ส่งออก CSV"}
           </Button>
         </div>
       </div>
@@ -270,13 +285,13 @@ function History() {
           </div>
 
           {/* ── Desktop: grouped table ── */}
-          <div className="hidden md:block relative overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl">
+          <div className="hidden md:block relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/20 backdrop-blur-sm shadow-xl">
             <Table>
               <TableHeader>
                 <TableRow className="bg-white/5 border-b border-white/5 hover:bg-white/5">
                   {[
                     "",
-                    "วิชา / Lab",
+                    "วิชา / ปฏิบัติการ",
                     "Checkpoint",
                     "ครั้งที่",
                     "ผล",
