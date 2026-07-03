@@ -105,6 +105,20 @@ export interface SystemConfig {
   disabledAt: string | null;
 }
 
+export type FeedbackStatus = 'new' | 'read';
+
+export interface Feedback {
+  _id: string;
+  studentId: string;
+  studentName: string;
+  subjectId: string | null;
+  subjectName: string;
+  message: string;
+  status: FeedbackStatus;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface QueueEntry {
   _id: string;
   subjectId: string;

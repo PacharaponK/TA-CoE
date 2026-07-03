@@ -13,6 +13,8 @@ import type {
   TaRole,
   PublicTaProfile,
   ScheduleEntry,
+  Feedback,
+  FeedbackStatus,
 } from './types';
 
 export const API_BASE = (
@@ -200,6 +202,22 @@ export const studentsApi = {
     request<unknown>('DELETE', `/students/${id}`, undefined, { admin: true }),
 };
 
+// ---- Feedback (student suggestions) ----
+export const feedbackApi = {
+  /** Public — students submit a suggestion, no auth required. */
+  submit: (data: { studentId?: string; studentName?: string; subjectId?: string; message: string }) =>
+    request<Feedback>('POST', '/feedback', data),
+  list: (status?: FeedbackStatus) =>
+    request<Feedback[]>('GET', '/feedback', undefined, {
+      admin: true,
+      query: { status },
+    }),
+  updateStatus: (id: string, status: FeedbackStatus) =>
+    request<Feedback>('PATCH', `/feedback/${id}/status`, { status }, { admin: true }),
+  remove: (id: string) =>
+    request<unknown>('DELETE', `/feedback/${id}`, undefined, { admin: true }),
+};
+
 // ---- Auth ----
 export const authApi = {
   login: (username: string, password: string) =>
@@ -262,4 +280,6 @@ export type {
   TaRole,
   PublicTaProfile,
   ScheduleEntry,
+  Feedback,
+  FeedbackStatus,
 };

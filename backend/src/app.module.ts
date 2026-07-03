@@ -10,6 +10,7 @@ import { QueueModule } from './queue/queue.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { StudentsModule } from './students/students.module';
 import { SystemConfigModule } from './system-config/system-config.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { SystemConfigModule } from './system-config/system-config.module';
     QueueModule,
     StudentsModule,
     SystemConfigModule,
+    FeedbackModule,
   ],
 })
 export class AppModule {}

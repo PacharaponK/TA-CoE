@@ -13,6 +13,7 @@ import {
   Users,
   UserCircle,
   Settings,
+  MessageSquare,
   ExternalLink,
   LogOut,
   Menu,
@@ -24,6 +25,7 @@ const NAV = [
   { href: '/admin/history',  label: 'History',    icon: History,    exact: false, adminOnly: false },
   { href: '/admin/subjects', label: 'วิชา & ปฏิบัติการ', icon: BookOpen,   exact: false, adminOnly: false },
   { href: '/admin/students', label: 'นักศึกษา',  icon: Users,      exact: false, adminOnly: false },
+  { href: '/admin/feedback', label: 'ข้อเสนอแนะ', icon: MessageSquare, exact: false, adminOnly: false },
   { href: '/admin/profile',  label: 'โปรไฟล์ของฉัน', icon: UserCircle, exact: false, adminOnly: false },
   { href: '/admin/settings', label: 'ตั้งค่า',    icon: Settings,   exact: false, adminOnly: true },
 ] as const;

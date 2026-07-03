@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils';
 import { isLoggedIn } from '@/lib/auth';
 
 const LINKS = [
-  { href: '/',        label: 'หน้าแรก' },
-  { href: '/queue',   label: 'คิวตรวจ' },
-  { href: '/contact', label: 'ติดต่อ TA' },
+  { href: '/',         label: 'หน้าแรก' },
+  { href: '/queue',    label: 'คิวตรวจ' },
+  { href: '/feedback', label: 'ข้อเสนอแนะ' },
+  { href: '/contact',  label: 'ติดต่อ TA' },
 ];
 
 export function NavBar() {
