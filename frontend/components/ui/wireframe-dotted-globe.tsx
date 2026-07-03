@@ -13,6 +13,9 @@ interface RotatingEarthProps {
   fullscreen?: boolean
   /** Horizontal centre of the globe: 0 = far left, 0.5 = centre, 1 = far right. Default 0.5 */
   xPosition?: number
+  strokeColor?: string
+  dotColor?: string
+  graticuleColor?: string
 }
 
 export default function RotatingEarth({
@@ -22,6 +25,9 @@ export default function RotatingEarth({
   rounded = true,
   fullscreen = false,
   xPosition = 0.5,
+  strokeColor = "#ffffff",
+  dotColor = "#999999",
+  graticuleColor = "#ffffff",
 }: RotatingEarthProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -122,7 +128,7 @@ export default function RotatingEarth({
       context.arc(cx, cy, currentScale, 0, 2 * Math.PI)
       context.fillStyle = "#000000"
       context.fill()
-      context.strokeStyle = "#ffffff"
+      context.strokeStyle = strokeColor
       context.lineWidth = 2 * scaleFactor
       context.stroke()
 
@@ -131,7 +137,7 @@ export default function RotatingEarth({
         const graticule = d3.geoGraticule()
         context.beginPath()
         path(graticule())
-        context.strokeStyle = "#ffffff"
+        context.strokeStyle = graticuleColor
         context.lineWidth = 1 * scaleFactor
         context.globalAlpha = 0.25
         context.stroke()
@@ -140,7 +146,7 @@ export default function RotatingEarth({
         // Land outlines
         context.beginPath()
         landFeatures.features.forEach((feature: any) => { path(feature) })
-        context.strokeStyle = "#ffffff"
+        context.strokeStyle = strokeColor
         context.lineWidth = 1 * scaleFactor
         context.stroke()
 
@@ -154,7 +160,7 @@ export default function RotatingEarth({
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
-            context.fillStyle = "#999999"
+            context.fillStyle = dotColor
             context.fill()
           }
         })
