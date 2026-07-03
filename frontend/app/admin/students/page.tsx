@@ -9,16 +9,48 @@ import { EmptyState, Field, Spinner } from '@/components/ui';
 import { studentsApi, subjectsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
 import { cn } from '@/lib/utils';
-import { Users } from 'lucide-react';
+import {
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  GraduationCap,
+  Search,
+  SlidersHorizontal,
+  ChevronDown,
+} from 'lucide-react';
 import type { Student, Subject } from '@/lib/types';
 import { StudentForm } from './_components/StudentForm';
 
 // ── Stats chip ────────────────────────────────────────────────────
-function StatChip({ label, value }: { label: string; value: number }) {
+function StatChip({
+  label,
+  value,
+  icon,
+  className,
+}: {
+  label: string;
+  value: number;
+  icon?: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className="flex flex-col items-center rounded-xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md px-5 py-3 shadow-md">
-      <span className="text-2xl font-bold text-white">{value}</span>
-      <span className="mt-0.5 text-xs text-zinc-400">{label}</span>
+    <div className={cn(
+      "group flex flex-col items-center justify-center flex-1 min-w-[140px] rounded-xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-md px-6 py-4 shadow-md transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/50 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20",
+      className
+    )}>
+      {icon && (
+        <div className="mb-2 text-zinc-400 group-hover:text-zinc-200 transition-colors">
+          {icon}
+        </div>
+      )}
+      <span className="text-3xl font-extrabold text-white tracking-tight leading-none">
+        {value}
+      </span>
+      <span className="mt-2 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider text-center">
+        {label}
+      </span>
     </div>
   );
 }
@@ -36,6 +68,10 @@ function Manager() {
   const [filterSection, setFilterSection] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
 
+  // pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
   // form state
   const [showForm, setShowForm] = useState(false);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
@@ -48,6 +84,11 @@ function Manager() {
 
   useEffect(() => { reload(); }, [reload]);
   useEffect(() => { subjectsApi.list().then(setSubjects).catch(() => {}); }, []);
+
+  // reset to page 1 on filter/itemsPerPage change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterYear, filterSection, filterSubject, itemsPerPage]);
 
   const subjectById = useMemo(
     () => new Map(subjects.map((s) => [s._id, s])),
@@ -76,6 +117,30 @@ function Manager() {
     });
   }, [students, search, filterYear, filterSection, filterSubject]);
 
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+  const pageNumbers = useMemo(() => {
+    const range: (number | string)[] = [];
+    const delta = 1;
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - delta && i <= currentPage + delta)
+      ) {
+        range.push(i);
+      } else if (range[range.length - 1] !== '...') {
+        range.push('...');
+      }
+    }
+    return range;
+  }, [currentPage, totalPages]);
+
   const byYear = useMemo(() =>
     years.map(y => ({ year: y, count: students.filter(s => s.year === y).length })),
     [students, years]);
@@ -85,93 +150,130 @@ function Manager() {
   function closeForm() { setShowForm(false); setEditStudent(null); }
 
   return (
-    <main className="container-page flex w-full flex-1 flex-col gap-8 py-8">
+    <main className="container-page flex w-full flex-1 flex-col gap-8 py-8 animate-[fadeIn_0.5s_ease_both]">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">นักศึกษา</h1>
-        <p className="mt-1 text-sm text-zinc-400">จัดการข้อมูลนักศึกษาในระบบ</p>
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-gradient-to-r from-zinc-950 via-zinc-900/40 to-zinc-950 p-6 sm:p-8 shadow-2xl animate-[fadeSlideDown_0.6s_ease_both]">
+        <div className="absolute top-0 right-0 h-48 w-48 bg-zinc-500/10 rounded-full blur-[80px]" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-zinc-300 shadow-lg backdrop-blur-md">
+              <GraduationCap className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                นักศึกษา
+              </h1>
+              <p className="mt-1.5 text-sm text-zinc-400">
+                จัดการข้อมูลและรายวิชาของนักศึกษาในระบบคิวปฏิบัติการ
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && <p className="rounded-lg bg-destructive/10 px-4 py-2 text-sm text-destructive">{error}</p>}
 
       {/* Stats */}
       {!loading && students.length > 0 && (
-        <div className="flex flex-wrap gap-3 animate-[fadeSlideUp_0.8s_ease_0.15s_both]">
-          <StatChip label="ทั้งหมด" value={students.length} />
+        <div className="flex flex-wrap gap-3 w-full animate-[fadeSlideUp_0.8s_ease_0.15s_both]">
+          <StatChip
+            label="ทั้งหมด"
+            value={students.length}
+            icon={<Users className="h-5 w-5 text-emerald-400" />}
+            className="sm:flex-[2] md:flex-[3] sm:min-w-[200px] border-emerald-900/30 bg-emerald-950/15 hover:border-emerald-500/40 hover:bg-emerald-950/30 hover:shadow-emerald-950/30"
+          />
           {byYear.map(({ year, count }) => (
-            <StatChip key={year} label={`ชั้นปีที่ ${year}`} value={count} />
+            <StatChip key={year} label={`ชั้นปีที่ ${year}`} value={count} icon={<GraduationCap className="h-5 w-5 text-zinc-400" />} />
           ))}
         </div>
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-end gap-3 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
-        <Field label="ค้นหา" className="min-w-[200px] flex-1">
-          <Input
-            placeholder="ชื่อ / รหัสนักศึกษา / ชื่อเล่น…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-          />
-        </Field>
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/20 backdrop-blur-sm p-4 sm:p-6 flex flex-col gap-4 animate-[fadeSlideUp_0.8s_ease_0.2s_both]">
+        <div className="flex items-center gap-2 border-b border-zinc-800/60 pb-3">
+          <SlidersHorizontal className="h-4 w-4 text-zinc-500" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">ตัวกรองและค้นหา</span>
+        </div>
+        <div className="flex flex-wrap items-end gap-3">
+          <Field label="ค้นหานักศึกษา" className="min-w-[200px] flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+              <Input
+                placeholder="ชื่อ / รหัสนักศึกษา / ชื่อเล่น…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="pl-9 border-zinc-800 bg-black/40 text-white placeholder-zinc-500 focus-visible:ring-zinc-500/20 focus-visible:border-zinc-700 hover:border-zinc-800 transition-colors"
+              />
+            </div>
+          </Field>
 
-        <Field label="ชั้นปี" className="w-32">
-          <select
-            value={filterYear}
-            onChange={e => setFilterYear(e.target.value)}
-            className={cn(
-              'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
-              'text-sm text-white shadow-sm transition-colors outline-none',
-              'focus:ring-1 focus:ring-zinc-500/30',
-            )}
+          <Field label="ชั้นปี" className="w-32">
+            <div className="relative">
+              <select
+                value={filterYear}
+                onChange={e => setFilterYear(e.target.value)}
+                className={cn(
+                  'appearance-none flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 pr-8 py-1',
+                  'text-sm text-white shadow-sm transition-all duration-200 outline-none cursor-pointer',
+                  'focus:border-zinc-700 focus:ring-1 focus:ring-zinc-500/10 hover:border-zinc-700 hover:bg-zinc-900/40',
+                )}
+              >
+                <option value="" className="bg-zinc-950 text-white">ทั้งหมด</option>
+                {years.map(y => <option key={y} value={y} className="bg-zinc-950 text-white">ปีที่ {y}</option>)}
+              </select>
+              <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-zinc-500 pointer-events-none" />
+            </div>
+          </Field>
+
+          {sections.length > 0 && (
+            <Field label="Section" className="w-32">
+              <div className="relative">
+                <select
+                  value={filterSection}
+                  onChange={e => setFilterSection(e.target.value)}
+                  className={cn(
+                    'appearance-none flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 pr-8 py-1',
+                    'text-sm text-white shadow-sm transition-all duration-200 outline-none cursor-pointer',
+                    'focus:border-zinc-700 focus:ring-1 focus:ring-zinc-500/10 hover:border-zinc-700 hover:bg-zinc-900/40',
+                  )}
+                >
+                  <option value="" className="bg-zinc-950 text-white">ทั้งหมด</option>
+                  {sections.map(sec => <option key={sec} value={sec} className="bg-zinc-950 text-white">{sec}</option>)}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-zinc-500 pointer-events-none" />
+              </div>
+            </Field>
+          )}
+
+          {subjects.length > 0 && (
+            <Field label="วิชา" className="w-40">
+              <div className="relative">
+                <select
+                  value={filterSubject}
+                  onChange={e => setFilterSubject(e.target.value)}
+                  className={cn(
+                    'appearance-none flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 pr-8 py-1',
+                    'text-sm text-white shadow-sm transition-all duration-200 outline-none cursor-pointer',
+                    'focus:border-zinc-700 focus:ring-1 focus:ring-zinc-500/10 hover:border-zinc-700 hover:bg-zinc-900/40',
+                  )}
+                >
+                  <option value="" className="bg-zinc-950 text-white">ทั้งหมด</option>
+                  {subjects.map(subj => <option key={subj._id} value={subj._id} className="bg-zinc-950 text-white">{subj.code}</option>)}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-2.5 h-4 w-4 text-zinc-500 pointer-events-none" />
+              </div>
+            </Field>
+          )}
+
+          <Button
+            variant="outline"
+            className="self-end rounded-lg border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all font-semibold"
+            onClick={showForm && !editStudent ? closeForm : openAdd}
           >
-            <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
-            {years.map(y => <option key={y} value={y} className="bg-zinc-900 text-white">ปีที่ {y}</option>)}
-          </select>
-        </Field>
-
-        {sections.length > 0 && (
-          <Field label="Section" className="w-32">
-            <select
-              value={filterSection}
-              onChange={e => setFilterSection(e.target.value)}
-              className={cn(
-                'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
-                'text-sm text-white shadow-sm transition-colors outline-none',
-                'focus:ring-1 focus:ring-zinc-500/30',
-              )}
-            >
-              <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
-              {sections.map(sec => <option key={sec} value={sec} className="bg-zinc-900 text-white">{sec}</option>)}
-            </select>
-          </Field>
-        )}
-
-        {subjects.length > 0 && (
-          <Field label="วิชา" className="w-40">
-            <select
-              value={filterSubject}
-              onChange={e => setFilterSubject(e.target.value)}
-              className={cn(
-                'flex h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 px-3 py-1',
-                'text-sm text-white shadow-sm transition-colors outline-none',
-                'focus:ring-1 focus:ring-zinc-500/30',
-              )}
-            >
-              <option value="" className="bg-zinc-900 text-white">ทั้งหมด</option>
-              {subjects.map(subj => <option key={subj._id} value={subj._id} className="bg-zinc-900 text-white">{subj.code}</option>)}
-            </select>
-          </Field>
-        )}
-
-        <Button
-          variant="outline"
-          className="self-end rounded-full border-white/15 text-zinc-300 hover:bg-white/5 hover:text-white"
-          onClick={showForm && !editStudent ? closeForm : openAdd}
-        >
-          {showForm && !editStudent ? 'ยกเลิก' : '+ เพิ่มนักศึกษา'}
-        </Button>
+            {showForm && !editStudent ? 'ยกเลิก' : '+ เพิ่มนักศึกษา'}
+          </Button>
+        </div>
       </div>
 
       {/* Add form */}
@@ -208,7 +310,7 @@ function Manager() {
             <span />
           </div>
 
-          {filtered.map((s, idx) =>
+          {paginatedStudents.map((s, idx) =>
             editStudent?._id === s._id ? (
               <StudentForm
                 key={s._id}
@@ -248,7 +350,7 @@ function Manager() {
 
                   {/* Desktop layout */}
                   <div className="hidden grid-cols-[3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 sm:grid">
-                    <span className="text-xs text-zinc-500">{idx + 1}</span>
+                    <span className="text-xs text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                     <span className="font-mono text-sm text-white">{s.studentId}</span>
                     <span className="min-w-0 truncate text-sm font-medium text-white">
                       {s.firstName} {s.surname}
@@ -274,9 +376,99 @@ function Manager() {
             )
           )}
 
-          <p className="text-right text-xs text-muted-foreground">
-            แสดง {filtered.length} จาก {students.length} คน
-          </p>
+          {/* Pagination controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-zinc-800/60">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-xs text-zinc-400">
+              <span>
+                แสดง {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} -{' '}
+                {Math.min(currentPage * itemsPerPage, filtered.length)} จากทั้งหมด {filtered.length} คน
+                {filtered.length !== students.length && ` (กรองจาก ${students.length} คน)`}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500">แสดงผล:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={e => setItemsPerPage(Number(e.target.value))}
+                  className={cn(
+                    'rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1',
+                    'text-xs text-white shadow-sm transition-colors outline-none cursor-pointer',
+                    'focus:ring-1 focus:ring-zinc-500/30 hover:border-zinc-700',
+                  )}
+                >
+                  <option value={20} className="bg-zinc-950">20 คน / หน้า</option>
+                  <option value={50} className="bg-zinc-950">50 คน / หน้า</option>
+                  <option value={100} className="bg-zinc-950">100 คน / หน้า</option>
+                </select>
+              </div>
+            </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white disabled:opacity-30 transition-all hover:bg-zinc-900"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white disabled:opacity-30 transition-all hover:bg-zinc-900"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {pageNumbers.map((page, i) => (
+                    typeof page === 'number' ? (
+                      <Button
+                        key={i}
+                        variant={currentPage === page ? 'default' : 'outline'}
+                        size="sm"
+                        className={cn(
+                          "h-8 min-w-[2rem] px-2 rounded-lg text-xs font-semibold transition-all duration-200",
+                          currentPage === page
+                            ? "bg-white text-zinc-950 font-bold hover:bg-white/90 shadow-md shadow-white/5"
+                            : "border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white hover:bg-zinc-900"
+                        )}
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    ) : (
+                      <span key={i} className="px-1.5 text-zinc-600 text-xs font-bold select-none">
+                        {page}
+                      </span>
+                    )
+                  ))}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white disabled:opacity-30 transition-all hover:bg-zinc-900"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-lg border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:text-white disabled:opacity-30 transition-all hover:bg-zinc-900"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </main>
