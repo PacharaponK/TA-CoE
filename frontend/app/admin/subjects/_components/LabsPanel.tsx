@@ -32,6 +32,8 @@ export function LabsPanel({
 
   const run = useAction(reload, onError);
 
+  const nextOrder = labs.length > 0 ? Math.max(...labs.map((l) => l.order)) + 1 : 1;
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between border-b border-white/5 pb-2">
@@ -50,6 +52,7 @@ export function LabsPanel({
 
       {showForm && !editLab && (
         <LabForm
+          defaultOrder={nextOrder}
           onCancel={() => setShowForm(false)}
           onSubmit={async (data) => {
             if (await run(() => labsApi.create({ ...data, subjectId: subject._id })))

@@ -5,19 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import type { Checkpoint, Lab } from '@/lib/types';
 
 export function LabForm({
   initial,
+  defaultOrder = 1,
   onSubmit,
   onCancel,
 }: {
   initial?: Lab;
+  defaultOrder?: number;
   onSubmit: (data: Partial<Lab>) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
-  const [order, setOrder] = useState(String(initial?.order ?? 0));
+  const [order, setOrder] = useState(String(initial?.order ?? defaultOrder));
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
   const [checkpoints, setCheckpoints] = useState<Array<{ _id?: string; name: string }>>(
     initial?.checkpoints.map((c) => ({ _id: c._id, name: c.name })) ?? [],
@@ -54,12 +57,36 @@ export function LabForm({
             }
           }}
         >
-          <div className="grid gap-3 sm:grid-cols-[2fr_0.5fr]">
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <Field label="ชื่อ Lab">
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lab 3 — Linked List" className={inputCn} />
             </Field>
             <Field label="ลำดับ">
-              <Input type="number" value={order} onChange={(e) => setOrder(e.target.value)} className={inputCn} />
+              <div className="flex items-center">
+                <button
+                  type="button"
+                  className="flex h-9 w-9 items-center justify-center rounded-l-md border border-white/10 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800/80 hover:text-white transition-colors select-none font-medium"
+                  onClick={() => setOrder(prev => String(Math.max(0, (Number(prev) || 0) - 1)))}
+                >
+                  -
+                </button>
+                <Input
+                  type="number"
+                  value={order}
+                  onChange={(e) => setOrder(e.target.value)}
+                  className={cn(
+                    inputCn,
+                    "h-9 w-14 rounded-none border-x-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  )}
+                />
+                <button
+                  type="button"
+                  className="flex h-9 w-9 items-center justify-center rounded-r-md border border-white/10 bg-zinc-900/50 text-zinc-400 hover:bg-zinc-800/80 hover:text-white transition-colors select-none font-medium"
+                  onClick={() => setOrder(prev => String((Number(prev) || 0) + 1))}
+                >
+                  +
+                </button>
+              </div>
             </Field>
           </div>
 
