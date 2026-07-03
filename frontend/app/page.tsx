@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import RotatingEarth from '@/components/ui/wireframe-dotted-globe';
 import { NavBar } from '@/components/NavBar';
+import { Globe } from '@/components/CobeGlobe';
 
 // Globe is rendered at 72% of viewport width
 const GLOBE_X = '72%';
@@ -15,19 +14,30 @@ export default function HeroPage() {
     <div className="relative h-screen w-full overflow-hidden bg-black font-geist">
 
       {/* ── Globe ── */}
-      <div className="absolute inset-0 overflow-hidden">
-        <RotatingEarth width={2560} height={1440} rounded={false} fullscreen xPosition={0.72} />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <Globe
+          className="absolute"
+          style={{
+            left: '72%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '56vw',
+            maxWidth: '800px',
+            height: '56vw',
+            maxHeight: '800px',
+          }}
+        />
       </div>
 
       {/* ── Gradient overlays ── */}
       {/* left-to-right: darken text side */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent" />
       {/* top & bottom vignette */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/75" />
 
       {/* ── Decorative layer ── */}
 
-      {/* Blue radial glow behind the globe */}
+      {/* White radial glow behind the globe */}
       <div
         className="pointer-events-none absolute animate-[globe-glow-pulse_5s_ease-in-out_infinite]"
         style={{
@@ -39,7 +49,7 @@ export default function HeroPage() {
           marginTop: '-30vmin',
           borderRadius: '50%',
           background:
-            'radial-gradient(circle, rgba(59,130,246,0.45) 0%, rgba(37,99,235,0.15) 45%, transparent 70%)',
+            'radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)',
         }}
       />
 
@@ -55,7 +65,7 @@ export default function HeroPage() {
             height: '34vmin',
             marginLeft: '-17vmin',
             marginTop: '-17vmin',
-            borderColor: 'rgba(99,170,255,0.22)',
+            borderColor: 'rgba(255,255,255,0.05)',
             animationDelay: `${i * 1.5}s`,
           }}
         />
@@ -68,17 +78,17 @@ export default function HeroPage() {
       >
         {/* horizontal bar */}
         <div
-          className="absolute bg-blue-400/40"
+          className="absolute bg-white/10"
           style={{ width: 24, height: 1, marginLeft: -12, marginTop: -0.5 }}
         />
         {/* vertical bar */}
         <div
-          className="absolute bg-blue-400/40"
+          className="absolute bg-white/10"
           style={{ width: 1, height: 24, marginLeft: -0.5, marginTop: -12 }}
         />
         {/* centre dot */}
         <div
-          className="absolute rounded-full border border-blue-400/50"
+          className="absolute rounded-full border border-white/15"
           style={{ width: 7, height: 7, marginLeft: -3.5, marginTop: -3.5 }}
         />
       </div>
@@ -118,9 +128,9 @@ export default function HeroPage() {
 
           {/* Badge */}
           <div className="mb-6 flex items-center gap-3 animate-[fadeSlideUp_0.8s_ease_0.15s_both]">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-950/40 px-3 py-1.5 backdrop-blur-sm">
               <LivePulse />
-              <span className="text-[11px] font-semibold uppercase tracking-widest text-white/80">Live</span>
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-350">Live</span>
             </div>
             <div className="flex items-center gap-2 text-[11px] text-white/30">
               <span className="h-px w-4 bg-white/20" />
@@ -129,14 +139,14 @@ export default function HeroPage() {
           </div>
 
           {/* H1 */}
-          <h1 className="text-4xl font-medium leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl animate-[fadeSlideUp_0.8s_ease_0.3s_both]">
+          <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl animate-[fadeSlideUp_0.8s_ease_0.3s_both]">
             ระบบจัดคิว<br />
             ตรวจ{' '}
-            <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-cyan-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
               Checkpoint
             </span>
             <br />
-            CoE Lab
+            CoE ปฏิบัติการ
           </h1>
         </div>
 
@@ -150,20 +160,20 @@ export default function HeroPage() {
           </div>
 
           <p className="mb-6 text-sm leading-relaxed text-white/55 sm:text-base">
-            เลือกวิชาและ Lab เพื่อดูลำดับคิวปัจจุบัน อัปเดตอัตโนมัติโดยไม่ต้องรีเฟรชหน้า
+            เลือกวิชาและปฏิบัติการเพื่อดูลำดับคิวปัจจุบัน อัปเดตอัตโนมัติโดยไม่ต้องรีเฟรชหน้า
           </p>
 
           {/* CTA */}
           <Link
             href="/queue"
-            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg bg-white px-6 py-3 text-sm font-semibold text-black transition-transform hover:scale-[1.03] animate-[fadeSlideUp_0.8s_ease_0.75s_both]"
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg bg-white px-6 py-3 text-sm font-semibold text-black transition-all duration-300 hover:scale-[1.03] hover:bg-white/95 hover:shadow-lg hover:shadow-white/5 animate-[fadeSlideUp_0.8s_ease_0.75s_both]"
           >
             <span className="relative z-10 flex items-center gap-2">
               ดูคิวปัจจุบัน
               <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
             </span>
             {/* shimmer sweep */}
-            <span className="absolute inset-0 animate-[shimmer-slide_2.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-black/8 to-transparent" />
+            <span className="absolute inset-0 animate-[shimmer-slide_2.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
           </Link>
 
           {/* Tech meta row */}
@@ -181,8 +191,8 @@ export default function HeroPage() {
 function LivePulse() {
   return (
     <span className="relative flex h-2 w-2 shrink-0">
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400/70 opacity-75" />
-      <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-400" />
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/30 opacity-75" />
+      <span className="relative inline-flex h-2 w-2 rounded-full bg-white/60" />
     </span>
   );
 }
