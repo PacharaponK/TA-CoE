@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { StudentSearchInput } from '@/components/StudentSearchInput';
 import { queueApi, studentsApi } from '@/lib/api';
+import { setMyStudentId } from '@/lib/myQueue';
 import { cn } from '@/lib/utils';
 import type { Lab, Student } from '@/lib/types';
 
@@ -151,6 +152,7 @@ export function EnqueueModal({
         studentName: data.studentName,
         section: data.section,
       });
+      setMyStudentId(data.studentId);
       reset();
       onClose();
     } catch (err) {

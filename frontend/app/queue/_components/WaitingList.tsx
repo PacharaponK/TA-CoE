@@ -8,7 +8,13 @@ import { cn } from '@/lib/utils';
 import type { QueueEntry } from '@/lib/types';
 import { SectionHeader } from './SectionHeader';
 
-export function WaitingList({ entries }: { entries: QueueEntry[] }) {
+export function WaitingList({
+  entries,
+  myStudentId,
+}: {
+  entries: QueueEntry[];
+  myStudentId?: string | null;
+}) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader title="รอตรวจ" count={entries.length} />
@@ -27,6 +33,8 @@ export function WaitingList({ entries }: { entries: QueueEntry[] }) {
               className={cn(
                 'transition-all duration-300 bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm hover:border-zinc-700',
                 i === 0 && 'border-zinc-500/30 bg-gradient-to-b from-zinc-900/20 to-transparent shadow-lg shadow-white/5',
+                e.studentId === myStudentId &&
+                  'border-emerald-500/50 ring-1 ring-emerald-500/30',
               )}
             >
               <CardContent className="flex items-center gap-4 py-3.5">

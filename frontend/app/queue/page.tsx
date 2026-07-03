@@ -11,6 +11,7 @@ import { queueApi } from '@/lib/api';
 import { useScope } from '@/lib/useScope';
 import { useRealtime } from '@/lib/useRealtime';
 import { useKillSwitch } from '@/lib/useKillSwitch';
+import { useMyQueueAlert } from '@/lib/useMyQueueAlert';
 import type { QueueEntry } from '@/lib/types';
 import { MousePointerClick, AlertTriangle } from 'lucide-react';
 import { EnqueueModal } from './EnqueueModal';
@@ -19,6 +20,7 @@ import { KillSwitchOverlay } from './_components/KillSwitchOverlay';
 import { CheckingList } from './_components/CheckingList';
 import { WaitingList } from './_components/WaitingList';
 import { JoinFab } from './_components/JoinFab';
+import { MyTurnBanner } from './_components/MyTurnBanner';
 
 export default function QueuePage() {
   const { subjects, labs, scope, setScope, loading: scopeLoading, reloadLabs } = useScope(true);
@@ -65,6 +67,8 @@ export default function QueuePage() {
   const checking = entries.filter((e) => e.status === 'checking');
   const waiting = entries.filter((e) => e.status === 'waiting');
 
+  const { myStudentId, myEntry, isMyTurn } = useMyQueueAlert(entries);
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <GlobeBackground />
@@ -96,8 +100,9 @@ export default function QueuePage() {
         ) : (
           <div className="relative flex flex-col gap-8">
             {queueDisabled && <KillSwitchOverlay message={disabledMessage} />}
-            <CheckingList entries={checking} />
-            <WaitingList entries={waiting} />
+            {isMyTurn && myEntry && <MyTurnBanner entry={myEntry} />}
+            <CheckingList entries={checking} myStudentId={myStudentId} />
+            <WaitingList entries={waiting} myStudentId={myStudentId} />
           </div>
         )}
       </main>

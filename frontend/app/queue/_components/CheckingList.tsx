@@ -3,10 +3,17 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/StatusBadge';
 import { fmtTime } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import type { QueueEntry } from '@/lib/types';
 import { SectionHeader } from './SectionHeader';
 
-export function CheckingList({ entries }: { entries: QueueEntry[] }) {
+export function CheckingList({
+  entries,
+  myStudentId,
+}: {
+  entries: QueueEntry[];
+  myStudentId?: string | null;
+}) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader title="กำลังตรวจ" count={entries.length} live={entries.length > 0} />
@@ -21,7 +28,11 @@ export function CheckingList({ entries }: { entries: QueueEntry[] }) {
           {entries.map((e) => (
             <Card
               key={e._id}
-              className="relative overflow-hidden border border-zinc-500/30 bg-zinc-900/50 backdrop-blur-md shadow-lg shadow-white/5 hover:border-zinc-500/50 transition-all duration-300"
+              className={cn(
+                'relative overflow-hidden border border-zinc-500/30 bg-zinc-900/50 backdrop-blur-md shadow-lg shadow-white/5 hover:border-zinc-500/50 transition-all duration-300',
+                e.studentId === myStudentId &&
+                  'border-emerald-500/50 shadow-emerald-500/10 ring-1 ring-emerald-500/30',
+              )}
             >
               <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-white to-zinc-400" />
               <CardContent className="pt-5">
