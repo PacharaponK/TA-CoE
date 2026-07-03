@@ -19,7 +19,7 @@ Backend (`cd backend`):
 
 - `pnpm dev` / `pnpm start:dev` — watch-mode API on `:4000`
 - `pnpm build` / `pnpm start:prod` — compile to `dist/` and run
-- `pnpm seed` — wipe + reseed demo data (reads `.env`; the only way to get sample data)
+- `pnpm seed` — wipe + reseed demo data (reads `.env`; the only way to get sample data). **Destructive: it runs `deleteMany({})` on `Subject`, `Lab`, and `QueueEntry` before inserting demo rows. Never run this (or any other command/script that deletes or bulk-modifies data) against a real database without asking the user first** — the Atlas free tier has no backup/point-in-time restore, so a wipe here is unrecoverable.
 
 Frontend (`cd frontend`):
 
