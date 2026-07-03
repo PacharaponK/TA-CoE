@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState, Field, Spinner } from '@/components/ui';
 import { tasApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
+import { confirmToast } from '@/lib/confirm-toast';
 import { useCurrentTa } from '@/lib/ta-context';
 import { cn } from '@/lib/utils';
 import { UserCog } from 'lucide-react';
@@ -297,10 +298,9 @@ export function TaAccountsCard() {
                       size="sm"
                       variant="ghost"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        if (confirm(`ลบบัญชี ${t.displayName} (@${t.username})?`))
-                          run(() => tasApi.remove(t._id));
-                      }}
+                      onClick={() =>
+                        confirmToast(`ลบบัญชี ${t.displayName} (@${t.username})?`, () => run(() => tasApi.remove(t._id)))
+                      }
                     >
                       ลบ
                     </Button>

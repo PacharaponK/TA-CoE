@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState, Field, Spinner } from '@/components/ui';
 import { studentsApi, subjectsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
+import { confirmToast } from '@/lib/confirm-toast';
 import { cn } from '@/lib/utils';
 import {
   Users,
@@ -494,10 +495,9 @@ function RowActions({
         size="sm"
         variant="ghost"
         className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={() => {
-          if (confirm(`ลบ ${s.firstName} ${s.surname} (${s.studentId}) ออกจากระบบ?`))
-            onDelete();
-        }}
+        onClick={() =>
+          confirmToast(`ลบ ${s.firstName} ${s.surname} (${s.studentId}) ออกจากระบบ?`, onDelete)
+        }
       >
         ลบ
       </Button>

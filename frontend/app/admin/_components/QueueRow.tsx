@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/StatusBadge';
 import { queueApi } from '@/lib/api';
+import { confirmToast } from '@/lib/confirm-toast';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -109,10 +110,9 @@ export function QueueRow({
             size="sm"
             variant="ghost"
             className="text-zinc-500 hover:text-red-400"
-            onClick={() => {
-              if (confirm(`ลบคิวของ ${e.studentName}?`))
-                onAction(() => queueApi.remove(e._id));
-            }}
+            onClick={() =>
+              confirmToast(`ลบคิวของ ${e.studentName}?`, () => onAction(() => queueApi.remove(e._id)))
+            }
           >
             ลบ
           </Button>

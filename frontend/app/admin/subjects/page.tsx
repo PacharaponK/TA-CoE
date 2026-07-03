@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState, Spinner } from '@/components/ui';
 import { subjectsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Subject } from '@/lib/types';
 import { SubjectForm } from './_components/SubjectForm';
 import { LabsPanel } from './_components/LabsPanel';
@@ -38,6 +39,7 @@ function Manager() {
   const [selected, setSelected] = useState<string>('');
   const [showSubjectForm, setShowSubjectForm] = useState(false);
   const [editSubject, setEditSubject] = useState<Subject | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -165,8 +167,7 @@ function Manager() {
                         className="h-8 text-xs font-semibold text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg px-3 transition-colors"
                         onClick={(ev) => {
                           ev.stopPropagation();
-                          if (confirm(`ลบวิชา ${s.code}? ปฏิบัติการและคิวทั้งหมดของวิชานี้จะถูกลบด้วย`))
-                            run(() => subjectsApi.remove(s._id));
+                          setDeleteTarget(s);
                         }}
                       >
                         ลบ
@@ -188,6 +189,19 @@ function Manager() {
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={`ลบวิชา ${deleteTarget?.code}?`}
+        description="ปฏิบัติการและคิวทั้งหมดของวิชานี้จะถูกลบไปด้วย การกระทำนี้ไม่สามารถย้อนกลับได้"
+        confirmLabel="ลบวิชา"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const target = deleteTarget!;
+          setDeleteTarget(null);
+          run(() => subjectsApi.remove(target._id));
+        }}
+      />
     </main>
   );
 }

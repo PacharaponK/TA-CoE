@@ -23,7 +23,9 @@ export {
 } from '@/components/ui/badge';
 
 export { Input } from '@/components/ui/input';
+export { Textarea } from '@/components/ui/textarea';
 export { Label } from '@/components/ui/label';
+export { Toaster } from '@/components/ui/sonner';
 export { Separator } from '@/components/ui/separator';
 
 export {

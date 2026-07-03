@@ -17,6 +17,7 @@ import {
 import { EmptyState, Field, Spinner } from "@/components/ui";
 import { History as HistoryIcon, FileDown, Search, SlidersHorizontal } from "lucide-react";
 import { queueApi } from "@/lib/api";
+import { confirmToast } from "@/lib/confirm-toast";
 import { useScope } from "@/lib/useScope";
 import { fmtDateTime } from "@/lib/format";
 import type { QueueEntry } from "@/lib/types";
@@ -102,7 +103,6 @@ function History() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("คุณต้องการลบประวัติรายการนี้ใช่หรือไม่?")) return;
     setError("");
     try {
       await queueApi.remove(id);
@@ -110,6 +110,10 @@ function History() {
     } catch (e) {
       setError((e as Error).message);
     }
+  }
+
+  function confirmDelete(id: string) {
+    confirmToast("คุณต้องการลบประวัติรายการนี้ใช่หรือไม่?", () => handleDelete(id));
   }
 
   async function handleExport() {
@@ -272,7 +276,7 @@ function History() {
                           size="sm"
                           variant="ghost"
                           className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-full"
-                          onClick={() => handleDelete(r._id)}
+                          onClick={() => confirmDelete(r._id)}
                         >
                           ลบ
                         </Button>
@@ -401,7 +405,7 @@ function History() {
                               size="sm"
                               variant="ghost"
                               className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-full"
-                              onClick={() => handleDelete(r._id)}
+                              onClick={() => confirmDelete(r._id)}
                             >
                               ลบ
                             </Button>

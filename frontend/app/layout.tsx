@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Noto_Sans_Thai } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { SystemBanner } from '@/components/SystemBanner';
+import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 // Inter for Latin; Noto Sans Thai for Thai characters.
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body>
         <SystemBanner />
         {children}
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

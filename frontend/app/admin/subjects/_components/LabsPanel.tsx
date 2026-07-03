@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState, Spinner } from '@/components/ui';
 import { labsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Lab, Subject } from '@/lib/types';
 import { LabForm } from './LabForm';
 
@@ -21,6 +22,7 @@ export function LabsPanel({
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editLab, setEditLab] = useState<Lab | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Lab | null>(null);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -120,10 +122,7 @@ export function LabsPanel({
                       size="sm"
                       variant="ghost"
                       className="text-zinc-500 hover:text-red-400 hover:bg-destructive/10"
-                      onClick={() => {
-                        if (confirm(`ลบ ${l.name}? คิวของ Lab นี้จะถูกลบด้วย`))
-                          run(() => labsApi.remove(l._id));
-                      }}
+                      onClick={() => setDeleteTarget(l)}
                     >
                       ลบ
                     </Button>
@@ -134,6 +133,19 @@ export function LabsPanel({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={`ลบ ${deleteTarget?.name}?`}
+        description="คิวทั้งหมดของ Lab นี้จะถูกลบไปด้วย การกระทำนี้ไม่สามารถย้อนกลับได้"
+        confirmLabel="ลบ Lab"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const target = deleteTarget!;
+          setDeleteTarget(null);
+          run(() => labsApi.remove(target._id));
+        }}
+      />
     </section>
   );
 }
