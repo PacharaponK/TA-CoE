@@ -20,6 +20,7 @@ const MESSAGE_MAX = 2000;
 
 export default function FeedbackPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjectsLoading, setSubjectsLoading] = useState(true);
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
   const [subjectId, setSubjectId] = useState('');
@@ -29,7 +30,11 @@ export default function FeedbackPage() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    subjectsApi.list(true).then(setSubjects).catch(() => {});
+    subjectsApi
+      .list(true)
+      .then(setSubjects)
+      .catch(() => {})
+      .finally(() => setSubjectsLoading(false));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,7 +89,7 @@ export default function FeedbackPage() {
           </p>
         </div>
 
-        <div className="mx-auto w-full max-w-xl">
+        <div className="w-full">
           {sent ? (
             <div className="flex flex-col items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/30 backdrop-blur-sm p-10 text-center shadow-xl animate-[fadeSlideUp_0.5s_ease_both]">
               <span className="grid h-12 w-12 place-items-center rounded-full bg-emerald-500/10 border border-emerald-500/20">
@@ -137,18 +142,22 @@ export default function FeedbackPage() {
               </div>
 
               <Field label="วิชาที่เกี่ยวข้อง (ถ้ามี)">
-                <Select value={subjectId || undefined} onValueChange={(v) => setSubjectId(v ?? '')}>
-                  <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-                    <SelectValue placeholder="ทั่วไป / ไม่ระบุวิชา" />
-                  </SelectTrigger>
-                  <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
-                    {subjects.map((s) => (
-                      <SelectItem key={s._id} value={s._id} className="text-zinc-300 hover:bg-white/5 hover:text-white">
-                        {s.code} · {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {subjectsLoading ? (
+                  <div className="h-9 w-full animate-pulse rounded-md border border-zinc-800 bg-zinc-900/40" />
+                ) : (
+                  <Select value={subjectId || undefined} onValueChange={(v) => setSubjectId(v ?? '')}>
+                    <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
+                      <SelectValue placeholder="ทั่วไป / ไม่ระบุวิชา" />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
+                      {subjects.map((s) => (
+                        <SelectItem key={s._id} value={s._id} className="text-zinc-300 hover:bg-white/5 hover:text-white">
+                          {s.code} · {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </Field>
 
               <Field label="ข้อเสนอแนะ" hint={`${message.length}/${MESSAGE_MAX}`}>
