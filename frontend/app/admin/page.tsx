@@ -4,16 +4,15 @@ import { useCallback, useEffect, useState } from 'react';
 import Loading from '@/app/loading';
 import { ScopePicker } from '@/components/ScopePicker';
 import { EmptyState, Spinner } from '@/components/ui';
-import { queueApi, studentsApi, systemConfigApi } from '@/lib/api';
+import { queueApi, studentsApi } from '@/lib/api';
 import { useScope } from '@/lib/useScope';
 import { useRealtime } from '@/lib/useRealtime';
 import { useAction } from '@/lib/useAction';
 import type { QueueEntry, Student } from '@/lib/types';
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles, Activity, Layers } from 'lucide-react';
 import { QueueStats } from './_components/QueueStats';
 import { QueueRow } from './_components/QueueRow';
 import { EnqueueForm } from './_components/EnqueueForm';
-import { KillSwitchCard } from './_components/KillSwitchCard';
 import { LabPauseCard } from './_components/LabPauseCard';
 
 function AdminQueue() {
@@ -23,10 +22,6 @@ function AdminQueue() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // kill-switch state — updated via WebSocket broadcast
-  const [queueDisabled, setQueueDisabled] = useState(false);
-  const [disabledMessage, setDisabledMessage] = useState('');
-
   const selectedLab = labs.find((l) => l._id === scope.labId);
   const needsCheckpoint = (selectedLab?.checkpoints?.length ?? 0) > 0;
   const ready = scope.subjectId && scope.labId;
@@ -35,13 +30,6 @@ function AdminQueue() {
     if (!scope.subjectId) { setStudents([]); return; }
     studentsApi.list(true, scope.subjectId).then(setStudents).catch(() => {});
   }, [scope.subjectId]);
-
-  useEffect(() => {
-    systemConfigApi.get().then((cfg) => {
-      setQueueDisabled(cfg.queueDisabled);
-      setDisabledMessage(cfg.disabledMessage);
-    }).catch(() => {});
-  }, []);
 
   const reload = useCallback(async () => {
     if (!scope.subjectId || !scope.labId) { setEntries([]); return; }
@@ -57,33 +45,39 @@ function AdminQueue() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  const handleSystem = useCallback(
-    (cfg: { queueDisabled: boolean; disabledMessage: string }) => {
-      setQueueDisabled(cfg.queueDisabled);
-      setDisabledMessage(cfg.disabledMessage);
-    },
-    [],
-  );
-
   const handleChange = useCallback(() => {
     reload();
     reloadLabs();
   }, [reload, reloadLabs]);
 
-  useRealtime(handleChange, handleSystem);
+  useRealtime(handleChange);
 
   const run = useAction(reload, setError);
 
   return (
-    <main className="container-page flex w-full flex-1 flex-col gap-6 py-8 relative z-10">
+    <main className="container-page flex w-full flex-1 flex-col gap-8 py-8 relative z-10 animate-[fadeIn_0.5s_ease_both]">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">จัดการคิว</h1>
-        <p className="mt-1 text-sm text-zinc-400">เพิ่มนักศึกษาเข้าคิว เรียกตรวจ และบันทึกผล</p>
+      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-gradient-to-r from-zinc-950 via-zinc-900/40 to-zinc-950 p-6 sm:p-8 shadow-2xl animate-[fadeSlideDown_0.6s_ease_both]">
+        <div className="absolute top-0 right-0 h-48 w-48 bg-zinc-500/10 rounded-full blur-[80px]" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-zinc-300 shadow-lg backdrop-blur-md">
+              <Activity className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">
+                จัดการคิว
+              </h1>
+              <p className="mt-1.5 text-sm text-zinc-400 font-medium">
+                เรียกคิว ตรวจสอบ และบันทึกคะแนนสะสมปฏิบัติการแบบเรียลไทม์
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Scope picker */}
-      <div className="relative z-20 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 shadow-xl backdrop-blur-md">
+      <div className="relative z-20 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 shadow-xl backdrop-blur-sm">
         <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
       </div>
 
@@ -92,7 +86,7 @@ function AdminQueue() {
       ) : !ready ? (
         <EmptyState
           icon={<Search className="h-5 w-5 text-zinc-400" />}
-          title="เลือกวิชาและ Lab ก่อน"
+          title="เลือกวิชาและปฏิบัติการก่อน"
           description="เพื่อเริ่มเพิ่มนักศึกษาเข้าคิว"
         />
       ) : (
@@ -108,9 +102,12 @@ function AdminQueue() {
           />
 
           {/* Live queue */}
-          <section className="flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3 border-b border-white/5 pb-2">
-              <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">คิวปัจจุบัน</h2>
+          <section className="flex flex-col gap-4 animate-[fadeIn_0.5s_ease_both]">
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-805/60 pb-2">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-zinc-500" />
+                <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">คิวปัจจุบัน</h2>
+              </div>
               <QueueStats entries={entries} />
             </div>
 
@@ -130,8 +127,6 @@ function AdminQueue() {
           </section>
         </>
       )}
-
-      <KillSwitchCard queueDisabled={queueDisabled} disabledMessage={disabledMessage} />
     </main>
   );
 }
