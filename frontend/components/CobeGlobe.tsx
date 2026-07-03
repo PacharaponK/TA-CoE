@@ -12,12 +12,12 @@ const GLOBE_CONFIG: COBEOptions = {
   phi: 0,
   theta: 0.3,
   dark: 1,
-  diffuse: 1.2,
+  diffuse: 2,
   mapSamples: 16000,
-  mapBrightness: 6,
-  baseColor: [0.2, 0.2, 0.2],
+  mapBrightness: 10,
+  baseColor: [0.35, 0.35, 0.35],
   markerColor: [1, 1, 1],
-  glowColor: [0.15, 0.15, 0.15],
+  glowColor: [0.35, 0.35, 0.35],
   markers: [
     { location: [13.7563, 100.5018], size: 0.05 }, // Bangkok
     { location: [14.5995, 120.9842], size: 0.03 },

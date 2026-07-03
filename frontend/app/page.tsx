@@ -49,7 +49,7 @@ export default function HeroPage() {
           marginTop: '-30vmin',
           borderRadius: '50%',
           background:
-            'radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 45%, transparent 70%)',
+            'radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 45%, transparent 70%)',
         }}
       />
 
