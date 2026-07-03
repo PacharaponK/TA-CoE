@@ -13,7 +13,7 @@ import { useRealtime } from '@/lib/useRealtime';
 import { useKillSwitch } from '@/lib/useKillSwitch';
 import { useMyQueueAlert } from '@/lib/useMyQueueAlert';
 import type { QueueEntry } from '@/lib/types';
-import { MousePointerClick, AlertTriangle } from 'lucide-react';
+import { MousePointerClick, AlertTriangle, ServerCrash, RotateCw } from 'lucide-react';
 import { EnqueueModal } from './EnqueueModal';
 import { PageHeader } from './_components/PageHeader';
 import { KillSwitchOverlay } from './_components/KillSwitchOverlay';
@@ -21,6 +21,11 @@ import { CheckingList } from './_components/CheckingList';
 import { WaitingList } from './_components/WaitingList';
 import { JoinFab } from './_components/JoinFab';
 import { MyTurnBanner } from './_components/MyTurnBanner';
+import { QueueSkeleton } from './_components/QueueSkeleton';
+
+// The API runs on a free-tier host that sleeps when idle; a cold start can
+// take a while, so past this threshold we say so instead of just spinning.
+const SLOW_CONNECTION_MS = 4000;
 
 export default function QueuePage() {
   const { subjects, labs, scope, setScope, loading: scopeLoading, reloadLabs } = useScope(true);
@@ -28,24 +33,30 @@ export default function QueuePage() {
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [connError, setConnError] = useState<string | null>(null);
+  const [slow, setSlow] = useState(false);
 
   const reload = useCallback(async () => {
     if (!scope.subjectId || !scope.labId) { setEntries([]); return; }
     setLoading(true);
+    setConnError(null);
+    const slowTimer = setTimeout(() => setSlow(true), SLOW_CONNECTION_MS);
     try {
-      setEntries(
-        await queueApi.active({
-          subjectId: scope.subjectId,
-          labId: scope.labId,
-          checkpointId:
-            scope.checkpointId && scope.checkpointId !== '__all__'
-              ? scope.checkpointId
-              : undefined,
-        }),
-      );
-    } catch {
+      const data = await queueApi.active({
+        subjectId: scope.subjectId,
+        labId: scope.labId,
+        checkpointId:
+          scope.checkpointId && scope.checkpointId !== '__all__'
+            ? scope.checkpointId
+            : undefined,
+      });
+      setEntries(data);
+    } catch (err) {
       setEntries([]);
+      setConnError(err instanceof Error ? err.message : 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ');
     } finally {
+      clearTimeout(slowTimer);
+      setSlow(false);
       setLoading(false);
     }
   }, [scope]);
@@ -96,7 +107,33 @@ export default function QueuePage() {
             description="ระบบจะแสดงคิวปัจจุบันทันทีที่คุณเลือก"
           />
         ) : loading && entries.length === 0 ? (
-          <Spinner />
+          slow ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20 px-6 py-14 text-center backdrop-blur-sm animate-[fadeSlideUp_0.4s_ease_both]">
+              <Spinner />
+              <p className="text-sm font-medium text-zinc-300">กำลังปลุกเซิร์ฟเวอร์...</p>
+              <p className="max-w-xs text-xs text-zinc-500">
+                ระบบใช้ hosting ฟรี อาจใช้เวลาถึง 1 นาทีในการเชื่อมต่อครั้งแรก
+              </p>
+            </div>
+          ) : (
+            <QueueSkeleton />
+          )
+        ) : connError && entries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-red-900/40 bg-red-950/10 px-6 py-14 text-center backdrop-blur-sm">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-red-500/10 border border-red-900/40">
+              <ServerCrash className="h-5 w-5 text-red-400" />
+            </span>
+            <span className="text-base font-semibold text-white">เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ</span>
+            <span className="max-w-sm text-xs text-zinc-400">{connError}</span>
+            <button
+              type="button"
+              onClick={reload}
+              className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/60 px-3.5 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:border-zinc-500 hover:bg-zinc-800"
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+              ลองใหม่
+            </button>
+          </div>
         ) : (
           <div className="relative flex flex-col gap-8">
             {queueDisabled && <KillSwitchOverlay message={disabledMessage} />}

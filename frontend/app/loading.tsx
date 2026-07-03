@@ -1,4 +1,17 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
 export default function Loading() {
+  // The API is on a free-tier host that spins down when idle, so a cold
+  // start can take up to ~1 minute. Say so instead of leaving people
+  // staring at a silent spinner.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), 3500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black font-geist">
       {/* Pulse Brand Logo */}
@@ -29,6 +42,12 @@ export default function Loading() {
           />
         </div>
       </div>
+
+      {slow && (
+        <p className="mt-6 max-w-[260px] animate-[fadeSlideUp_0.4s_ease_both] text-center text-xs text-zinc-500">
+          กำลังปลุกเซิร์ฟเวอร์ อาจใช้เวลาถึง 1 นาที เนื่องจากใช้ hosting ฟรี
+        </p>
+      )}
     </div>
   );
 }
