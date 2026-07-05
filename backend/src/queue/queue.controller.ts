@@ -17,6 +17,7 @@ import { CurrentTa } from '../common/current-ta.decorator';
 import { TaTokenPayload } from '../common/ta-token.types';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { SystemConfigService } from '../system-config/system-config.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { QueueService } from './queue.service';
 import { EnqueueDto, ResolveDto } from './dto';
 
@@ -26,6 +27,7 @@ export class QueueController {
     private readonly queue: QueueService,
     private readonly realtime: RealtimeGateway,
     private readonly systemConfig: SystemConfigService,
+    private readonly telegram: TelegramService,
   ) {}
 
   // --- Public (viewer) ---
@@ -49,6 +51,7 @@ export class QueueController {
     }
     const created = await this.queue.enqueue(dto, { selfJoin: true });
     this.realtime.emitChange({ type: 'queue' });
+    this.telegram.notifyQueueJoined(created);
     return created;
   }
 

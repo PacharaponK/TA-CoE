@@ -80,6 +80,11 @@ export class CreateTaDto {
   statusText?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  telegramChatId?: string;
+
+  @IsOptional()
   @IsBoolean()
   available?: boolean;
 
@@ -135,6 +140,11 @@ export class UpdateOwnProfileDto {
   @IsString()
   @MaxLength(200)
   statusText?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  telegramChatId?: string;
 
   @IsOptional()
   @IsBoolean()
@@ -205,6 +215,11 @@ export class UpdateTaDto {
   @IsString()
   @MaxLength(200)
   statusText?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  telegramChatId?: string;
 
   @IsOptional()
   @IsBoolean()

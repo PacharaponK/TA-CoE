@@ -237,6 +237,7 @@ type TaProfileValues = {
   igName: string;
   location: string;
   statusText: string;
+  telegramChatId: string;
   available: boolean;
   showOnContactPage: boolean;
   schedule: ScheduleEntry[];

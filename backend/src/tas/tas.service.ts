@@ -99,6 +99,7 @@ export class TasService implements OnModuleInit {
       igName: dto.igName?.trim() ?? '',
       location: dto.location?.trim() ?? '',
       statusText: dto.statusText?.trim() ?? '',
+      telegramChatId: dto.telegramChatId?.trim() ?? '',
       available: dto.available ?? true,
       showOnContactPage: dto.showOnContactPage ?? false,
       schedule: dto.schedule ?? [],
@@ -153,6 +154,7 @@ export class TasService implements OnModuleInit {
     if (dto.igName !== undefined) ta.igName = dto.igName.trim();
     if (dto.location !== undefined) ta.location = dto.location.trim();
     if (dto.statusText !== undefined) ta.statusText = dto.statusText.trim();
+    if (dto.telegramChatId !== undefined) ta.telegramChatId = dto.telegramChatId.trim();
     if (dto.available !== undefined) ta.available = dto.available;
     if (dto.showOnContactPage !== undefined) ta.showOnContactPage = dto.showOnContactPage;
     if (dto.schedule !== undefined)
@@ -170,6 +172,16 @@ export class TasService implements OnModuleInit {
 
     await this.taModel.findByIdAndDelete(id);
     return { deleted: true, id };
+  }
+
+  /** Chat ids of active TAs who've opted in to Telegram notifications. */
+  async getNotifiableTelegramChatIds(): Promise<string[]> {
+    const tas = await this.taModel
+      .find({ isActive: true, telegramChatId: { $nin: ['', null] } })
+      .select('telegramChatId')
+      .lean()
+      .exec();
+    return tas.map((t) => t.telegramChatId).filter((id): id is string => !!id);
   }
 
   /** Guards against locking everyone out by demoting/deactivating/deleting the only admin. */

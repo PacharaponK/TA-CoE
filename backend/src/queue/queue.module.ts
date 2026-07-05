@@ -6,6 +6,7 @@ import { Lab, LabSchema } from '../labs/lab.schema';
 import { QueueService } from './queue.service';
 import { QueueController } from './queue.controller';
 import { SystemConfigModule } from '../system-config/system-config.module';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SystemConfigModule } from '../system-config/system-config.module';
       { name: Lab.name, schema: LabSchema },
     ]),
     SystemConfigModule,
+    TelegramModule,
   ],
   controllers: [QueueController],
   providers: [QueueService],
