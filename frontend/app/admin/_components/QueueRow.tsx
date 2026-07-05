@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/StatusBadge';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { queueApi } from '@/lib/api';
-import { confirmToast } from '@/lib/confirm-toast';
 import { fmtTime, waitedMinutes } from '@/lib/format';
 import type { QueueEntry } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,8 @@ export function QueueRow({
   index: number;
   onAction: (fn: () => Promise<unknown>) => void;
 }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   return (
     <Card
       className={cn(
@@ -110,14 +113,23 @@ export function QueueRow({
             size="sm"
             variant="ghost"
             className="text-zinc-500 hover:text-red-400"
-            onClick={() =>
-              confirmToast(`ลบคิวของ ${e.studentName}?`, () => onAction(() => queueApi.remove(e._id)))
-            }
+            onClick={() => setConfirmDelete(true)}
           >
             ลบ
           </Button>
         </div>
       </CardContent>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={`ลบคิวของ ${e.studentName}?`}
+        confirmLabel="ลบ"
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onAction(() => queueApi.remove(e._id));
+        }}
+      />
     </Card>
   );
 }

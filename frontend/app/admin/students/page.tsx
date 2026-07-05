@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { EmptyState, Field, Spinner } from '@/components/ui';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { studentsApi, subjectsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
-import { confirmToast } from '@/lib/confirm-toast';
 import { cn } from '@/lib/utils';
 import {
   Users,
@@ -85,6 +86,10 @@ function Manager() {
 
   // bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -397,7 +402,7 @@ function Manager() {
           onDeactivate={handleBulkDeactivate}
           onAddToSubject={handleBulkAddSubject}
           onRemoveFromSubject={handleBulkRemoveSubject}
-          onDelete={handleBulkDelete}
+          onDelete={() => setConfirmBulkDelete(true)}
           onClear={() => setSelectedIds(new Set())}
         />
       )}
@@ -415,12 +420,10 @@ function Manager() {
         <div className="flex flex-col gap-2">
           {/* Table header */}
           <div className="hidden grid-cols-[1.5rem_3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 px-4 sm:grid">
-            <input
-              type="checkbox"
-              className="h-3.5 w-3.5 cursor-pointer accent-white"
+            <Checkbox
               checked={allPageSelected}
-              ref={(el) => { if (el) el.indeterminate = !allPageSelected && somePageSelected; }}
-              onChange={toggleSelectPage}
+              indeterminate={!allPageSelected && somePageSelected}
+              onCheckedChange={toggleSelectPage}
               aria-label="เลือกทั้งหมดในหน้านี้"
             />
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">#</span>
@@ -456,11 +459,10 @@ function Manager() {
                   {/* Mobile layout */}
                   <div className="flex items-start justify-between gap-3 sm:hidden">
                     <div className="flex items-start gap-3 min-w-0">
-                      <input
-                        type="checkbox"
-                        className="mt-1 h-3.5 w-3.5 cursor-pointer accent-white shrink-0"
+                      <Checkbox
+                        className="mt-1"
                         checked={selectedIds.has(s._id)}
-                        onChange={() => toggleSelectOne(s._id)}
+                        onCheckedChange={() => toggleSelectOne(s._id)}
                         aria-label={`เลือก ${s.firstName} ${s.surname}`}
                       />
                       <div className="min-w-0">
@@ -476,16 +478,14 @@ function Manager() {
                         </p>
                       </div>
                     </div>
-                    <RowActions s={s} onEdit={() => openEdit(s)} onDelete={() => run(() => studentsApi.remove(s._id))} />
+                    <RowActions onEdit={() => openEdit(s)} onDelete={() => setDeleteTarget(s)} />
                   </div>
 
                   {/* Desktop layout */}
                   <div className="hidden grid-cols-[1.5rem_3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 sm:grid">
-                    <input
-                      type="checkbox"
-                      className="h-3.5 w-3.5 cursor-pointer accent-white"
+                    <Checkbox
                       checked={selectedIds.has(s._id)}
-                      onChange={() => toggleSelectOne(s._id)}
+                      onCheckedChange={() => toggleSelectOne(s._id)}
                       aria-label={`เลือก ${s.firstName} ${s.surname}`}
                     />
                     <span className="text-xs text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
@@ -497,7 +497,7 @@ function Manager() {
                     <span className="text-sm text-zinc-400">{s.nickname || '–'}</span>
                     <span className="text-sm text-zinc-400">{s.year}</span>
                     <span className="text-sm text-zinc-400">{s.section || '–'}</span>
-                    <RowActions s={s} onEdit={() => openEdit(s)} onDelete={() => run(() => studentsApi.remove(s._id))} />
+                    <RowActions onEdit={() => openEdit(s)} onDelete={() => setDeleteTarget(s)} />
                   </div>
 
                   {s.subjectIds.length > 0 && (
@@ -609,17 +609,38 @@ function Manager() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title={`ลบ ${deleteTarget?.firstName} ${deleteTarget?.surname} (${deleteTarget?.studentId}) ออกจากระบบ?`}
+        confirmLabel="ลบ"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          const target = deleteTarget!;
+          setDeleteTarget(null);
+          run(() => studentsApi.remove(target._id));
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmBulkDelete}
+        title={`ลบนักศึกษาที่เลือกไว้ ${selectedIds.size} คน ออกจากระบบ?`}
+        confirmLabel="ลบ"
+        onCancel={() => setConfirmBulkDelete(false)}
+        onConfirm={() => {
+          setConfirmBulkDelete(false);
+          handleBulkDelete();
+        }}
+      />
     </main>
   );
 }
 
 // ── Row action buttons ────────────────────────────────────────────
 function RowActions({
-  s,
   onEdit,
   onDelete,
 }: {
-  s: Student;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -632,9 +653,7 @@ function RowActions({
         size="sm"
         variant="ghost"
         className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={() =>
-          confirmToast(`ลบ ${s.firstName} ${s.surname} (${s.studentId}) ออกจากระบบ?`, onDelete)
-        }
+        onClick={onDelete}
       >
         ลบ
       </Button>

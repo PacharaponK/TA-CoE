@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { confirmToast } from '@/lib/confirm-toast';
 import type { Subject } from '@/lib/types';
 
 function InlineSelect({
@@ -131,9 +130,7 @@ export function BulkActionsBar({
           variant="ghost"
           disabled={busy}
           className="h-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={() =>
-            confirmToast(`ลบนักศึกษาที่เลือกไว้ ${count} คน ออกจากระบบ?`, onDelete)
-          }
+          onClick={onDelete}
         >
           ลบ ({count})
         </Button>
