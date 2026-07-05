@@ -118,6 +118,8 @@ export function EnqueueModal({
       ? checkpointId
       : null;
 
+  const mStudentIdValid = /^\d{10}$/.test(mStudentId.trim());
+
   // current values for submission depending on mode
   const data = mode === 'search'
     ? selected && {
@@ -125,7 +127,7 @@ export function EnqueueModal({
       studentName: `${selected.firstName} ${selected.surname}`.trim(),
       section: section.trim() || undefined,
     }
-    : mStudentId.trim() && mName.trim()
+    : mStudentIdValid && mName.trim()
       ? {
         studentId: mStudentId.trim(),
         studentName: mName.trim(),
@@ -251,10 +253,19 @@ export function EnqueueModal({
               <Field label="รหัสนักศึกษา">
                 <Input
                   value={mStudentId}
-                  onChange={(e) => setMStudentId(e.target.value)}
+                  onChange={(e) =>
+                    setMStudentId(e.target.value.replace(/\D/g, '').slice(0, 10))
+                  }
+                  inputMode="numeric"
+                  maxLength={10}
                   placeholder="6301xxxxx"
                   className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
                 />
+                {mStudentId.length > 0 && !mStudentIdValid && (
+                  <p className="mt-1 text-xs text-orange-400">
+                    รหัสนักศึกษาต้องเป็นตัวเลข 10 หลัก
+                  </p>
+                )}
               </Field>
               <Field label="ชื่อ-นามสกุล">
                 <Input
