@@ -1,4 +1,6 @@
+import { Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -10,6 +12,7 @@ import {
   MaxLength,
   Min,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
 
 export class CreateStudentDto {
@@ -54,6 +57,10 @@ export class CreateStudentDto {
   @IsArray()
   @IsMongoId({ each: true })
   subjectIds?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
 export class UpdateStudentDto {
@@ -100,4 +107,35 @@ export class UpdateStudentDto {
   @IsArray()
   @IsMongoId({ each: true })
   subjectIds?: string[];
+}
+
+/** Body for bulk delete: `{ ids: [...] }`. */
+export class BulkIdsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsMongoId({ each: true })
+  ids: string[];
+}
+
+/** Body for bulk update: activate/deactivate and/or enroll/unenroll a subject across many students at once. */
+export class BulkUpdateDto extends BulkIdsDto {
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsMongoId()
+  addSubjectId?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  removeSubjectId?: string;
+}
+
+/** Body for CSV import: rows already resolved (subject codes → ids) client-side. */
+export class ImportStudentsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateStudentDto)
+  students: CreateStudentDto[];
 }

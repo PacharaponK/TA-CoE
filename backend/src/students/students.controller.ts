@@ -3,7 +3,13 @@ import {
   Param, Body, Query, UseGuards,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
-import { CreateStudentDto, UpdateStudentDto } from './dto';
+import {
+  BulkIdsDto,
+  BulkUpdateDto,
+  CreateStudentDto,
+  ImportStudentsDto,
+  UpdateStudentDto,
+} from './dto';
 import { AdminGuard } from '../common/admin.guard';
 
 @Controller('students')
@@ -34,10 +40,28 @@ export class StudentsController {
     return this.studentsService.create(dto);
   }
 
+  @Post('import')
+  @UseGuards(AdminGuard)
+  import(@Body() dto: ImportStudentsDto) {
+    return this.studentsService.importMany(dto.students);
+  }
+
+  @Patch('bulk')
+  @UseGuards(AdminGuard)
+  bulkUpdate(@Body() dto: BulkUpdateDto) {
+    return this.studentsService.bulkUpdate(dto);
+  }
+
   @Patch(':id')
   @UseGuards(AdminGuard)
   update(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
     return this.studentsService.update(id, dto);
+  }
+
+  @Delete('bulk')
+  @UseGuards(AdminGuard)
+  removeMany(@Body() dto: BulkIdsDto) {
+    return this.studentsService.removeMany(dto.ids);
   }
 
   @Delete(':id')

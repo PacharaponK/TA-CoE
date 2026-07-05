@@ -189,6 +189,12 @@ export const systemConfigApi = {
 };
 
 // ---- Students ----
+export type StudentImportResult = {
+  created: number;
+  updated: number;
+  errors: { row: number; studentId: string; message: string }[];
+};
+
 export const studentsApi = {
   list: (activeOnly = false, subjectId?: string) =>
     request<Student[]>('GET', '/students', undefined, {
@@ -200,6 +206,17 @@ export const studentsApi = {
     request<Student>('PATCH', `/students/${id}`, data, { admin: true }),
   remove: (id: string) =>
     request<unknown>('DELETE', `/students/${id}`, undefined, { admin: true }),
+  removeMany: (ids: string[]) =>
+    request<{ deletedCount: number }>('DELETE', '/students/bulk', { ids }, { admin: true }),
+  bulkUpdate: (data: {
+    ids: string[];
+    isActive?: boolean;
+    addSubjectId?: string;
+    removeSubjectId?: string;
+  }) =>
+    request<{ modifiedCount: number }>('PATCH', '/students/bulk', data, { admin: true }),
+  importMany: (students: Partial<Student>[]) =>
+    request<StudentImportResult>('POST', '/students/import', { students }, { admin: true }),
 };
 
 // ---- Feedback (student suggestions) ----
