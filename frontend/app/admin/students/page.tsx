@@ -20,9 +20,14 @@ import {
   Search,
   SlidersHorizontal,
   ChevronDown,
+  Upload,
+  Download,
 } from 'lucide-react';
 import type { Student, Subject } from '@/lib/types';
 import { StudentForm } from './_components/StudentForm';
+import { BulkActionsBar } from './_components/BulkActionsBar';
+import { ImportPanel } from './_components/ImportPanel';
+import { downloadCsv, studentsToCsv } from './_components/csv';
 
 // ── Stats chip ────────────────────────────────────────────────────
 function StatChip({
@@ -76,6 +81,10 @@ function Manager() {
   // form state
   const [showForm, setShowForm] = useState(false);
   const [editStudent, setEditStudent] = useState<Student | null>(null);
+  const [showImport, setShowImport] = useState(false);
+
+  // bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -86,10 +95,20 @@ function Manager() {
   useEffect(() => { reload(); }, [reload]);
   useEffect(() => { subjectsApi.list().then(setSubjects).catch(() => {}); }, []);
 
-  // reset to page 1 on filter/itemsPerPage change
+  // reset to page 1 and clear selection on filter/itemsPerPage change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds(new Set());
   }, [search, filterYear, filterSection, filterSubject, itemsPerPage]);
+
+  // drop selections that no longer exist after a reload (e.g. deleted elsewhere)
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const ids = new Set(students.map((s) => s._id));
+      const next = new Set([...prev].filter((id) => ids.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [students]);
 
   const subjectById = useMemo(
     () => new Map(subjects.map((s) => [s._id, s])),
@@ -146,9 +165,57 @@ function Manager() {
     years.map(y => ({ year: y, count: students.filter(s => s.year === y).length })),
     [students, years]);
 
-  function openAdd() { setEditStudent(null); setShowForm(true); }
+  function openAdd() { setEditStudent(null); setShowForm(true); setShowImport(false); }
   function openEdit(s: Student) { setShowForm(false); setEditStudent(s); }
   function closeForm() { setShowForm(false); setEditStudent(null); }
+
+  function toggleSelectOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  const pageIds = useMemo(() => paginatedStudents.map((s) => s._id), [paginatedStudents]);
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+  const somePageSelected = pageIds.some((id) => selectedIds.has(id));
+
+  function toggleSelectPage() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+
+  function handleExportCsv() {
+    const csv = studentsToCsv(filtered, subjectById);
+    downloadCsv(`students-export-${Date.now()}.csv`, csv);
+  }
+
+  async function handleBulkActivate() {
+    await run(() => studentsApi.bulkUpdate({ ids: [...selectedIds], isActive: true }));
+    setSelectedIds(new Set());
+  }
+  async function handleBulkDeactivate() {
+    await run(() => studentsApi.bulkUpdate({ ids: [...selectedIds], isActive: false }));
+    setSelectedIds(new Set());
+  }
+  async function handleBulkAddSubject(subjectId: string) {
+    await run(() => studentsApi.bulkUpdate({ ids: [...selectedIds], addSubjectId: subjectId }));
+    setSelectedIds(new Set());
+  }
+  async function handleBulkRemoveSubject(subjectId: string) {
+    await run(() => studentsApi.bulkUpdate({ ids: [...selectedIds], removeSubjectId: subjectId }));
+    setSelectedIds(new Set());
+  }
+  async function handleBulkDelete() {
+    await run(() => studentsApi.removeMany([...selectedIds]));
+    setSelectedIds(new Set());
+  }
 
   return (
     <main className="container-page flex w-full flex-1 flex-col gap-8 py-8 animate-[fadeIn_0.5s_ease_both]">
@@ -270,6 +337,29 @@ function Manager() {
           <Button
             variant="outline"
             className="self-end rounded-lg border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all font-semibold"
+            disabled={students.length === 0}
+            onClick={handleExportCsv}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            ส่งออก CSV
+          </Button>
+
+          <Button
+            variant="outline"
+            className="self-end rounded-lg border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all font-semibold"
+            onClick={() => {
+              if (showImport) { setShowImport(false); return; }
+              setShowImport(true);
+              closeForm();
+            }}
+          >
+            <Upload className="h-4 w-4 mr-1.5" />
+            {showImport ? 'ยกเลิก' : 'นำเข้า CSV'}
+          </Button>
+
+          <Button
+            variant="outline"
+            className="self-end rounded-lg border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-white hover:text-black hover:border-white transition-all font-semibold"
             onClick={showForm && !editStudent ? closeForm : openAdd}
           >
             {showForm && !editStudent ? 'ยกเลิก' : '+ เพิ่มนักศึกษา'}
@@ -289,6 +379,29 @@ function Manager() {
         />
       )}
 
+      {/* Import panel */}
+      {showImport && (
+        <ImportPanel
+          subjects={subjects}
+          onCancel={() => setShowImport(false)}
+          onDone={reload}
+        />
+      )}
+
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <BulkActionsBar
+          count={selectedIds.size}
+          subjects={subjects}
+          onActivate={handleBulkActivate}
+          onDeactivate={handleBulkDeactivate}
+          onAddToSubject={handleBulkAddSubject}
+          onRemoveFromSubject={handleBulkRemoveSubject}
+          onDelete={handleBulkDelete}
+          onClear={() => setSelectedIds(new Set())}
+        />
+      )}
+
       {/* List */}
       {loading ? (
         <Spinner />
@@ -301,7 +414,15 @@ function Manager() {
       ) : (
         <div className="flex flex-col gap-2">
           {/* Table header */}
-          <div className="hidden grid-cols-[3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 px-4 sm:grid">
+          <div className="hidden grid-cols-[1.5rem_3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 px-4 sm:grid">
+            <input
+              type="checkbox"
+              className="h-3.5 w-3.5 cursor-pointer accent-white"
+              checked={allPageSelected}
+              ref={(el) => { if (el) el.indeterminate = !allPageSelected && somePageSelected; }}
+              onChange={toggleSelectPage}
+              aria-label="เลือกทั้งหมดในหน้านี้"
+            />
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">#</span>
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">รหัสนักศึกษา</span>
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">ชื่อ – นามสกุล</span>
@@ -334,23 +455,39 @@ function Manager() {
                 <CardContent className="py-3">
                   {/* Mobile layout */}
                   <div className="flex items-start justify-between gap-3 sm:hidden">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-white">
-                        {s.firstName} {s.surname}
-                        {s.nickname && (
-                          <span className="ml-1.5 text-xs font-normal text-zinc-400">({s.nickname})</span>
-                        )}
-                        {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs">ปิด</Badge>}
-                      </p>
-                      <p className="mt-0.5 text-xs text-zinc-400">
-                        {s.studentId} · ปีที่ {s.year}{s.section ? ` · Sec ${s.section}` : ''}
-                      </p>
+                    <div className="flex items-start gap-3 min-w-0">
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-3.5 w-3.5 cursor-pointer accent-white shrink-0"
+                        checked={selectedIds.has(s._id)}
+                        onChange={() => toggleSelectOne(s._id)}
+                        aria-label={`เลือก ${s.firstName} ${s.surname}`}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-white">
+                          {s.firstName} {s.surname}
+                          {s.nickname && (
+                            <span className="ml-1.5 text-xs font-normal text-zinc-400">({s.nickname})</span>
+                          )}
+                          {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs">ปิด</Badge>}
+                        </p>
+                        <p className="mt-0.5 text-xs text-zinc-400">
+                          {s.studentId} · ปีที่ {s.year}{s.section ? ` · Sec ${s.section}` : ''}
+                        </p>
+                      </div>
                     </div>
                     <RowActions s={s} onEdit={() => openEdit(s)} onDelete={() => run(() => studentsApi.remove(s._id))} />
                   </div>
 
                   {/* Desktop layout */}
-                  <div className="hidden grid-cols-[3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 sm:grid">
+                  <div className="hidden grid-cols-[1.5rem_3rem_10rem_1fr_6rem_4rem_4rem_6rem] items-center gap-3 sm:grid">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5 cursor-pointer accent-white"
+                      checked={selectedIds.has(s._id)}
+                      onChange={() => toggleSelectOne(s._id)}
+                      aria-label={`เลือก ${s.firstName} ${s.surname}`}
+                    />
                     <span className="text-xs text-zinc-500">{(currentPage - 1) * itemsPerPage + idx + 1}</span>
                     <span className="font-mono text-sm text-white">{s.studentId}</span>
                     <span className="min-w-0 truncate text-sm font-medium text-white">
@@ -364,7 +501,7 @@ function Manager() {
                   </div>
 
                   {s.subjectIds.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5 sm:pl-[calc(3rem+10rem+0.75rem*2)]">
+                    <div className="mt-2 flex flex-wrap gap-1.5 sm:pl-[calc(1.5rem+3rem+10rem+0.75rem*3)]">
                       {s.subjectIds.map((id) => (
                         <Badge key={id} variant="outline" className="text-[10px] text-zinc-400 border-zinc-700">
                           {subjectById.get(id)?.code ?? '—'}
