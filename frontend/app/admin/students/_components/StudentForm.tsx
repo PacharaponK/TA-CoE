@@ -38,7 +38,8 @@ export function StudentForm({
   }
 
   const isEdit = !!initial;
-  const canSubmit = studentId.trim() && firstName.trim() && surname.trim() && year;
+  const studentIdValid = /^\d{10}$/.test(studentId.trim());
+  const canSubmit = (isEdit || studentIdValid) && firstName.trim() && surname.trim() && year;
 
   const inputCn = 'border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30';
 
@@ -74,11 +75,20 @@ export function StudentForm({
             <Field label="รหัสนักศึกษา *">
               <Input
                 value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
+                onChange={(e) =>
+                  setStudentId(e.target.value.replace(/\D/g, '').slice(0, 10))
+                }
+                inputMode="numeric"
+                maxLength={10}
                 placeholder="6710110005"
                 disabled={isEdit}
                 className={inputCn}
               />
+              {!isEdit && studentId.length > 0 && !studentIdValid && (
+                <p className="mt-1 text-xs text-orange-400">
+                  รหัสนักศึกษาต้องเป็นตัวเลข 10 หลัก
+                </p>
+              )}
             </Field>
             <Field label="ชื่อ *">
               <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="กรธัช" className={inputCn} />
