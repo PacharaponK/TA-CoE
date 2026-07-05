@@ -70,12 +70,10 @@ export interface TaAccount {
   displayName: string;
   role: TaRole;
   isActive: boolean;
-  title: string;
   email: string;
   facebookName: string;
   facebookUrl: string;
   igName: string;
-  location: string;
   statusText: string;
   available: boolean;
   showOnContactPage: boolean;
@@ -88,12 +86,10 @@ export interface TaAccount {
 export interface PublicTaProfile {
   id: string;
   displayName: string;
-  title: string;
   email: string;
   facebookName: string;
   facebookUrl: string;
   igName: string;
-  location: string;
   statusText: string;
   available: boolean;
   schedule: ScheduleEntry[];

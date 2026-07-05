@@ -45,12 +45,10 @@ function TaForm({
   const [password, setPassword] = useState('');
 
   const [profile, setProfile] = useState<TaProfileValues>({
-    title: initial?.title ?? '',
     email: initial?.email ?? '',
     facebookName: initial?.facebookName ?? '',
     facebookUrl: initial?.facebookUrl ?? '',
     igName: initial?.igName ?? '',
-    location: initial?.location ?? '',
     statusText: initial?.statusText ?? '',
     available: initial?.available ?? true,
     showOnContactPage: initial?.showOnContactPage ?? false,
@@ -242,12 +240,10 @@ export function TaAccountsCard() {
                       displayName: data.displayName,
                       role: data.role,
                       ...(data.password ? { password: data.password } : {}),
-                      title: data.title,
                       email: data.email,
                       facebookName: data.facebookName,
                       facebookUrl: data.facebookUrl,
                       igName: data.igName,
-                      location: data.location,
                       statusText: data.statusText,
                       available: data.available,
                       showOnContactPage: data.showOnContactPage,

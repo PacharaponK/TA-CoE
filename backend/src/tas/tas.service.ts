@@ -69,12 +69,10 @@ export class TasService implements OnModuleInit {
     return tas.map((t) => ({
       id: String(t._id),
       displayName: t.displayName,
-      title: t.title,
       email: t.email,
       facebookName: t.facebookName,
       facebookUrl: t.facebookUrl,
       igName: t.igName,
-      location: t.location,
       statusText: t.statusText,
       available: t.available,
       schedule: t.schedule,
@@ -92,12 +90,10 @@ export class TasService implements OnModuleInit {
       displayName: dto.displayName.trim(),
       role: dto.role,
       isActive: true,
-      title: dto.title?.trim() ?? '',
       email: dto.email?.trim() ?? '',
       facebookName: dto.facebookName?.trim() ?? '',
       facebookUrl: dto.facebookUrl?.trim() ?? '',
       igName: dto.igName?.trim() ?? '',
-      location: dto.location?.trim() ?? '',
       statusText: dto.statusText?.trim() ?? '',
       available: dto.available ?? true,
       showOnContactPage: dto.showOnContactPage ?? false,
@@ -146,12 +142,10 @@ export class TasService implements OnModuleInit {
     dto: UpdateOwnProfileDto,
   ) {
     if (dto.displayName !== undefined) ta.displayName = dto.displayName.trim();
-    if (dto.title !== undefined) ta.title = dto.title.trim();
     if (dto.email !== undefined) ta.email = dto.email.trim();
     if (dto.facebookName !== undefined) ta.facebookName = dto.facebookName.trim();
     if (dto.facebookUrl !== undefined) ta.facebookUrl = dto.facebookUrl.trim();
     if (dto.igName !== undefined) ta.igName = dto.igName.trim();
-    if (dto.location !== undefined) ta.location = dto.location.trim();
     if (dto.statusText !== undefined) ta.statusText = dto.statusText.trim();
     if (dto.available !== undefined) ta.available = dto.available;
     if (dto.showOnContactPage !== undefined) ta.showOnContactPage = dto.showOnContactPage;

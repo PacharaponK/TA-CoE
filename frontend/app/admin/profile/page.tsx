@@ -10,12 +10,10 @@ import { TaProfileFields, inputCn, normalizeProfileValues, type TaProfileValues 
 import type { TaAccount } from '@/lib/types';
 
 const emptyProfile: TaProfileValues = {
-  title: '',
   email: '',
   facebookName: '',
   facebookUrl: '',
   igName: '',
-  location: '',
   statusText: '',
   available: true,
   showOnContactPage: false,
@@ -38,12 +36,10 @@ function ProfilePage() {
       setMe(data);
       setDisplayName(data.displayName);
       setProfile({
-        title: data.title,
         email: data.email,
         facebookName: data.facebookName,
         facebookUrl: data.facebookUrl,
         igName: data.igName,
-        location: data.location,
         statusText: data.statusText,
         available: data.available,
         showOnContactPage: data.showOnContactPage,

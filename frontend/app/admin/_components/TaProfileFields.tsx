@@ -6,12 +6,10 @@ import { Field } from '@/components/ui';
 import type { ScheduleEntry } from '@/lib/types';
 
 export interface TaProfileValues {
-  title: string;
   email: string;
   facebookName: string;
   facebookUrl: string;
   igName: string;
-  location: string;
   statusText: string;
   available: boolean;
   showOnContactPage: boolean;
@@ -45,9 +43,6 @@ export function TaProfileFields({
   return (
     <div className="flex flex-col gap-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="ตำแหน่ง">
-          <Input value={value.title} onChange={(e) => set('title', e.target.value)} placeholder="หัวหน้า TA" className={inputCn} />
-        </Field>
         <Field label="อีเมล">
           <Input type="email" value={value.email} onChange={(e) => set('email', e.target.value)} placeholder="ta@example.com" className={inputCn} />
         </Field>
@@ -59,9 +54,6 @@ export function TaProfileFields({
         </Field>
         <Field label="ชื่อ Instagram">
           <Input value={value.igName} onChange={(e) => set('igName', e.target.value)} placeholder="_username" className={inputCn} />
-        </Field>
-        <Field label="สถานที่">
-          <Input value={value.location} onChange={(e) => set('location', e.target.value)} placeholder="Lab CoE (Room 405)" className={inputCn} />
         </Field>
       </div>
 
@@ -134,12 +126,10 @@ export function TaProfileFields({
 /** Strips blank rows and trims strings — call before submitting a TaProfileValues payload. */
 export function normalizeProfileValues(v: TaProfileValues): TaProfileValues {
   return {
-    title: v.title.trim(),
     email: v.email.trim(),
     facebookName: v.facebookName.trim(),
     facebookUrl: v.facebookUrl.trim(),
     igName: v.igName.trim(),
-    location: v.location.trim(),
     statusText: v.statusText.trim(),
     available: v.available,
     showOnContactPage: v.showOnContactPage,

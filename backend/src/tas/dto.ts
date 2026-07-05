@@ -46,11 +46,6 @@ export class CreateTaDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  title?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(200)
   email?: string;
 
@@ -68,11 +63,6 @@ export class CreateTaDto {
   @IsString()
   @MaxLength(100)
   igName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  location?: string;
 
   @IsOptional()
   @IsString()
@@ -103,11 +93,6 @@ export class UpdateOwnProfileDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  title?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(200)
   email?: string;
 
@@ -125,11 +110,6 @@ export class UpdateOwnProfileDto {
   @IsString()
   @MaxLength(100)
   igName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  location?: string;
 
   @IsOptional()
   @IsString()
@@ -173,11 +153,6 @@ export class UpdateTaDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  title?: string;
-
-  @IsOptional()
-  @IsString()
   @MaxLength(200)
   email?: string;
 
@@ -195,11 +170,6 @@ export class UpdateTaDto {
   @IsString()
   @MaxLength(100)
   igName?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  location?: string;
 
   @IsOptional()
   @IsString()

@@ -230,12 +230,10 @@ export const authApi = {
 
 // ---- TA accounts (Admin role only, except *OwnProfile which any TA can call) ----
 type TaProfileValues = {
-  title: string;
   email: string;
   facebookName: string;
   facebookUrl: string;
   igName: string;
-  location: string;
   statusText: string;
   available: boolean;
   showOnContactPage: boolean;

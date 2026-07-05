@@ -39,10 +39,6 @@ export class Ta {
 
   // --- Public contact-page profile (all optional; only shown when showOnContactPage is true) ---
 
-  /** Job title / position label, e.g. "หัวหน้า TA". Distinct from the auth `role` above. */
-  @Prop({ trim: true, default: '' })
-  title: string;
-
   @Prop({ trim: true, default: '' })
   email: string;
 
@@ -54,9 +50,6 @@ export class Ta {
 
   @Prop({ trim: true, default: '' })
   igName: string;
-
-  @Prop({ trim: true, default: '' })
-  location: string;
 
   @Prop({ trim: true, default: '' })
   statusText: string;

@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { GlobeBackground } from '@/components/GlobeBackground';
 import { EmptyState } from '@/components/ui';
 import Loading from '@/app/loading';
-import { Mail, Clock, Calendar, MapPin, Users } from 'lucide-react';
+import { Mail, Clock, Calendar, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { tasApi } from '@/lib/api';
 import type { PublicTaProfile } from '@/lib/types';
@@ -115,7 +115,6 @@ export default function ContactPage() {
                           </div>
                           <div className="min-w-0">
                             <h3 className="text-lg font-semibold text-white truncate">{ta.displayName}</h3>
-                            {ta.title && <p className="text-xs text-zinc-400">{ta.title}</p>}
 
                             <div className="mt-4 flex flex-col gap-2">
                               {ta.email && (
@@ -153,12 +152,6 @@ export default function ContactPage() {
                                   >
                                     {ta.igName}
                                   </a>
-                                </div>
-                              )}
-                              {ta.location && (
-                                <div className="flex items-center gap-2 text-xs text-zinc-400">
-                                  <MapPin className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
-                                  <span className="truncate">{ta.location}</span>
                                 </div>
                               )}
                             </div>
