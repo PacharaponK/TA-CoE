@@ -11,6 +11,7 @@ export interface TaProfileValues {
   facebookUrl: string;
   igName: string;
   statusText: string;
+  telegramChatId: string;
   available: boolean;
   showOnContactPage: boolean;
   schedule: ScheduleEntry[];
@@ -59,6 +60,18 @@ export function TaProfileFields({
 
       <Field label="ข้อความสถานะ" hint="ข้อความสั้น ๆ ที่แสดงใต้ Active/Offline">
         <Input value={value.statusText} onChange={(e) => set('statusText', e.target.value)} placeholder="พร้อมให้คำปรึกษาในห้องแล็บ" className={inputCn} />
+      </Field>
+
+      <Field
+        label="Telegram Chat ID"
+        hint="ทัก @userinfobot ใน Telegram เพื่อดู Chat ID ของคุณ — ใส่แล้วจะได้รับแจ้งเตือนทาง Telegram เมื่อมีนักศึกษาเข้าคิว"
+      >
+        <Input
+          value={value.telegramChatId}
+          onChange={(e) => set('telegramChatId', e.target.value)}
+          placeholder="123456789"
+          className={inputCn}
+        />
       </Field>
 
       <div className="flex flex-wrap gap-4">
@@ -131,6 +144,7 @@ export function normalizeProfileValues(v: TaProfileValues): TaProfileValues {
     facebookUrl: v.facebookUrl.trim(),
     igName: v.igName.trim(),
     statusText: v.statusText.trim(),
+    telegramChatId: v.telegramChatId.trim(),
     available: v.available,
     showOnContactPage: v.showOnContactPage,
     schedule: v.schedule

@@ -75,6 +75,7 @@ export interface TaAccount {
   facebookUrl: string;
   igName: string;
   statusText: string;
+  telegramChatId: string;
   available: boolean;
   showOnContactPage: boolean;
   schedule: ScheduleEntry[];

@@ -54,6 +54,10 @@ export class Ta {
   @Prop({ trim: true, default: '' })
   statusText: string;
 
+  /** Personal Telegram chat id (from @userinfobot) — DM'd when a student joins the queue. */
+  @Prop({ trim: true, default: '' })
+  telegramChatId: string;
+
   /** Drives the Active/Offline badge on the Contact page. */
   @Prop({ default: true })
   available: boolean;
