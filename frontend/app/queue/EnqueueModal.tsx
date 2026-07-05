@@ -120,6 +120,11 @@ export function EnqueueModal({
 
   const mStudentIdValid = /^\d{10}$/.test(mStudentId.trim());
 
+  // if the manually-typed id matches a known student, treat it as a search match
+  const matchedStudent = mStudentIdValid
+    ? students.find((s) => s.studentId === mStudentId.trim())
+    : undefined;
+
   // current values for submission depending on mode
   const data = mode === 'search'
     ? selected && {
@@ -127,13 +132,19 @@ export function EnqueueModal({
       studentName: `${selected.firstName} ${selected.surname}`.trim(),
       section: section.trim() || undefined,
     }
-    : mStudentIdValid && mName.trim()
+    : matchedStudent
       ? {
-        studentId: mStudentId.trim(),
-        studentName: mName.trim(),
-        section: mSection.trim() || undefined,
+        studentId: matchedStudent.studentId,
+        studentName: `${matchedStudent.firstName} ${matchedStudent.surname}`.trim(),
+        section: matchedStudent.section || undefined,
       }
-      : null;
+      : mStudentIdValid && mName.trim()
+        ? {
+          studentId: mStudentId.trim(),
+          studentName: mName.trim(),
+          section: mSection.trim() || undefined,
+        }
+        : null;
 
   const canSubmit =
     !!data &&
@@ -266,23 +277,33 @@ export function EnqueueModal({
                     รหัสนักศึกษาต้องเป็นตัวเลข 10 หลัก
                   </p>
                 )}
+                {matchedStudent && (
+                  <p className="mt-1 text-xs text-emerald-400">
+                    ✓ พบในรายชื่อ: {matchedStudent.firstName} {matchedStudent.surname}
+                    {matchedStudent.section && ` · Sec ${matchedStudent.section}`}
+                  </p>
+                )}
               </Field>
-              <Field label="ชื่อ-นามสกุล">
-                <Input
-                  value={mName}
-                  onChange={(e) => setMName(e.target.value)}
-                  placeholder="ชื่อ นามสกุล"
-                  className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                />
-              </Field>
-              <Field label="กลุ่มเรียน (Section)">
-                <Input
-                  value={mSection}
-                  onChange={(e) => setMSection(e.target.value)}
-                  placeholder="01 (ถ้ามี)"
-                  className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                />
-              </Field>
+              {!matchedStudent && (
+                <>
+                  <Field label="ชื่อ-นามสกุล">
+                    <Input
+                      value={mName}
+                      onChange={(e) => setMName(e.target.value)}
+                      placeholder="ชื่อ นามสกุล"
+                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
+                    />
+                  </Field>
+                  <Field label="กลุ่มเรียน (Section)">
+                    <Input
+                      value={mSection}
+                      onChange={(e) => setMSection(e.target.value)}
+                      placeholder="01 (ถ้ามี)"
+                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
+                    />
+                  </Field>
+                </>
+              )}
             </>
           )}
 
