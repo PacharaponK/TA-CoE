@@ -1,41 +1,62 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import Loading from '@/app/loading';
-import { ScopePicker } from '@/components/ScopePicker';
-import { EmptyState, Spinner } from '@/components/ui';
-import { queueApi, studentsApi } from '@/lib/api';
-import { useScope } from '@/lib/useScope';
-import { useRealtime } from '@/lib/useRealtime';
-import { useAction } from '@/lib/useAction';
-import type { QueueEntry, Student } from '@/lib/types';
-import { Search, Sparkles, Activity, Layers } from 'lucide-react';
-import { QueueStats } from './_components/QueueStats';
-import { QueueRow } from './_components/QueueRow';
-import { EnqueueForm } from './_components/EnqueueForm';
-import { LabPauseCard } from './_components/LabPauseCard';
+import { useCallback, useEffect, useState } from "react";
+import Loading from "@/app/loading";
+import { ScopePicker } from "@/components/ScopePicker";
+import { EmptyState, Spinner } from "@/components/ui";
+import { queueApi, studentsApi } from "@/lib/api";
+import { useScope } from "@/lib/useScope";
+import { useRealtime } from "@/lib/useRealtime";
+import { useAction } from "@/lib/useAction";
+import type { QueueEntry, Student } from "@/lib/types";
+import { Search, Sparkles, Activity, Layers } from "lucide-react";
+import { QueueStats } from "./_components/QueueStats";
+import { QueueRow } from "./_components/QueueRow";
+import { EnqueueForm } from "./_components/EnqueueForm";
+import { LabPauseCard } from "./_components/LabPauseCard";
 
 function AdminQueue() {
-  const { subjects, labs, scope, setScope, loading: scopeLoading, reloadLabs } = useScope(true);
+  const {
+    subjects,
+    labs,
+    scope,
+    setScope,
+    loading: scopeLoading,
+    reloadLabs,
+  } = useScope(true);
   const [entries, setEntries] = useState<QueueEntry[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const selectedLab = labs.find((l) => l._id === scope.labId);
   const needsCheckpoint = (selectedLab?.checkpoints?.length ?? 0) > 0;
   const ready = scope.subjectId && scope.labId;
 
   useEffect(() => {
-    if (!scope.subjectId) { setStudents([]); return; }
-    studentsApi.list(true, scope.subjectId).then(setStudents).catch(() => {});
+    if (!scope.subjectId) {
+      setStudents([]);
+      return;
+    }
+    studentsApi
+      .list(true, scope.subjectId)
+      .then(setStudents)
+      .catch(() => {});
   }, [scope.subjectId]);
 
   const reload = useCallback(async () => {
-    if (!scope.subjectId || !scope.labId) { setEntries([]); return; }
+    if (!scope.subjectId || !scope.labId) {
+      setEntries([]);
+      return;
+    }
     setLoading(true);
     try {
-      setEntries(await queueApi.active({ subjectId: scope.subjectId, labId: scope.labId }));
+      setEntries(
+        await queueApi.active({
+          subjectId: scope.subjectId,
+          labId: scope.labId,
+        }),
+      );
     } catch {
       setEntries([]);
     } finally {
@@ -43,7 +64,9 @@ function AdminQueue() {
     }
   }, [scope.subjectId, scope.labId]);
 
-  useEffect(() => { reload(); }, [reload]);
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   const handleChange = useCallback(() => {
     reload();
@@ -78,7 +101,12 @@ function AdminQueue() {
 
       {/* Scope picker */}
       <div className="relative z-20 rounded-2xl border border-zinc-800 bg-zinc-900/20 p-6 shadow-xl backdrop-blur-sm">
-        <ScopePicker subjects={subjects} labs={labs} scope={scope} onChange={setScope} />
+        <ScopePicker
+          subjects={subjects}
+          labs={labs}
+          scope={scope}
+          onChange={setScope}
+        />
       </div>
 
       {scopeLoading ? (
@@ -91,22 +119,14 @@ function AdminQueue() {
         />
       ) : (
         <>
-          <LabPauseCard lab={selectedLab} onChanged={reloadLabs} />
-
-          <EnqueueForm
-            scope={scope}
-            needsCheckpoint={needsCheckpoint}
-            students={students}
-            entries={entries}
-            onEnqueued={reload}
-          />
-
           {/* Live queue */}
           <section className="flex flex-col gap-4 animate-[fadeIn_0.5s_ease_both]">
             <div className="flex items-center justify-between gap-3 border-b border-zinc-805/60 pb-2">
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-zinc-500" />
-                <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">คิวปัจจุบัน</h2>
+                <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">
+                  คิวปัจจุบัน
+                </h2>
               </div>
               <QueueStats entries={entries} />
             </div>
@@ -116,15 +136,32 @@ function AdminQueue() {
             {loading && entries.length === 0 ? (
               <Spinner />
             ) : entries.length === 0 ? (
-              <EmptyState icon={<Sparkles className="h-5 w-5 text-zinc-400" />} title="ยังไม่มีคิว" />
+              <EmptyState
+                icon={<Sparkles className="h-5 w-5 text-zinc-400" />}
+                title="ยังไม่มีคิว"
+              />
             ) : (
               <div className="flex flex-col gap-2">
                 {entries.map((e, i) => (
-                  <QueueRow key={e._id} entry={e} index={i + 1} onAction={run} />
+                  <QueueRow
+                    key={e._id}
+                    entry={e}
+                    index={i + 1}
+                    onAction={run}
+                  />
                 ))}
               </div>
             )}
           </section>
+          <EnqueueForm
+            scope={scope}
+            needsCheckpoint={needsCheckpoint}
+            students={students}
+            entries={entries}
+            onEnqueued={reload}
+          />
+
+          <LabPauseCard lab={selectedLab} onChanged={reloadLabs} />
         </>
       )}
     </main>
