@@ -18,6 +18,25 @@ export function useScope(activeOnly = false) {
   const [scope, setScope] = useState<Scope>(EMPTY_SCOPE);
   const [loading, setLoading] = useState(true);
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
+  // Which subjects currently have at least one active lab — used so the
+  // default subject selection below doesn't land on a subject with nothing
+  // to show, forcing the viewer to search for the one that actually has one.
+  const [subjectsWithLabs, setSubjectsWithLabs] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    if (!activeOnly) {
+      setSubjectsWithLabs(null);
+      return;
+    }
+    (async () => {
+      try {
+        const activeLabs = await labsApi.list(undefined, true);
+        setSubjectsWithLabs(new Set(activeLabs.map((l) => l.subjectId)));
+      } catch {
+        setSubjectsWithLabs(new Set());
+      }
+    })();
+  }, [activeOnly]);
 
   const reloadSubjects = useCallback(async () => {
     setLoading(true);
@@ -62,15 +81,24 @@ export function useScope(activeOnly = false) {
     reloadLabs();
   }, [reloadLabs]);
 
-  // Auto-select first active subject (fallback to first subject in list)
+  // Auto-select the first subject that actually has an active lab (so the
+  // viewer lands on something to see), falling back to the first active
+  // subject, then the first subject in the list.
   useEffect(() => {
     if (subjects.length > 0 && !scope.subjectId) {
-      const activeSub = subjects.find((s) => s.isActive) || subjects[0];
+      // Wait for the active-lab lookup so we don't pick a subject with
+      // nothing in it before we know better.
+      if (activeOnly && subjectsWithLabs === null) return;
+      const subjectWithLab = subjectsWithLabs
+        ? subjects.find((s) => subjectsWithLabs.has(s._id))
+        : undefined;
+      const activeSub =
+        subjectWithLab || subjects.find((s) => s.isActive) || subjects[0];
       if (activeSub) {
         setScope((prev) => ({ ...prev, subjectId: activeSub._id }));
       }
     }
-  }, [subjects, scope.subjectId]);
+  }, [subjects, scope.subjectId, activeOnly, subjectsWithLabs]);
 
   // Auto-select first active lab (fallback to first lab in list)
   useEffect(() => {
