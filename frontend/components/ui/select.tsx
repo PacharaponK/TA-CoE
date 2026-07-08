@@ -1,10 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { ChevronDownIcon, CheckIcon } from 'lucide-react';
 
 // ── Utilities ─────────────────────────────────────────────────────
+
+const useIsoLayoutEffect =
+  typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
 function nodeToString(node: React.ReactNode): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node);
@@ -39,6 +43,8 @@ interface SelectCtxValue {
   open: boolean;
   setOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
   labelMap: Map<string, string>;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  contentRef: React.RefObject<HTMLDivElement>;
 }
 
 const SelectCtx = React.createContext<SelectCtxValue>({
@@ -47,6 +53,8 @@ const SelectCtx = React.createContext<SelectCtxValue>({
   open: false,
   setOpen: () => {},
   labelMap: new Map(),
+  triggerRef: { current: null },
+  contentRef: { current: null },
 });
 
 // ── Select ────────────────────────────────────────────────────────
@@ -64,13 +72,19 @@ function Select({
 }) {
   const [open, setOpen] = React.useState(false);
   const rootRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   const labelMap = React.useMemo(() => buildLabelMap(children), [children]);
 
   React.useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      // the dropdown is portaled outside rootRef, so check it separately
+      if (rootRef.current?.contains(target)) return;
+      if (contentRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -94,6 +108,8 @@ function Select({
         open,
         setOpen,
         labelMap,
+        triggerRef,
+        contentRef,
       }}
     >
       <div ref={rootRef} className={cn('relative w-full min-w-0', open && 'z-30')}>
@@ -112,7 +128,8 @@ function SelectTrigger({
   size: _size,
   ...props
 }: React.ComponentProps<'button'> & { size?: 'sm' | 'default' }) {
-  const { value, disabled, open, setOpen, labelMap } = React.useContext(SelectCtx);
+  const { value, disabled, open, setOpen, labelMap, triggerRef } =
+    React.useContext(SelectCtx);
 
   let placeholder = 'เลือก';
   React.Children.forEach(children, (c) => {
@@ -126,6 +143,7 @@ function SelectTrigger({
 
   return (
     <button
+      ref={triggerRef}
       type="button"
       role="combobox"
       aria-expanded={open}
@@ -193,20 +211,61 @@ function SelectContent({
   alignOffset?: number;
   alignItemWithTrigger?: boolean;
 }) {
-  const { open } = React.useContext(SelectCtx);
-  if (!open) return null;
+  const { open, triggerRef, contentRef } = React.useContext(SelectCtx);
+  const [pos, setPos] = React.useState<React.CSSProperties | null>(null);
 
-  return (
+  // Position the portaled dropdown against the trigger's viewport rect, and
+  // flip it above the trigger when there isn't enough room below. Recomputed on
+  // scroll/resize so it tracks the trigger while open.
+  useIsoLayoutEffect(() => {
+    if (!open) return;
+    const GAP = 4;
+    const MAX = 256; // matches the old max-h-64
+
+    function update() {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const below = window.innerHeight - r.bottom;
+      const above = r.top;
+      const openUp = below < Math.min(MAX, 200) && above > below;
+      const maxHeight = Math.min(MAX, Math.max(120, (openUp ? above : below) - GAP - 8));
+      setPos({
+        position: 'fixed',
+        left: r.left,
+        width: r.width,
+        maxHeight,
+        ...(openUp
+          ? { bottom: window.innerHeight - r.top + GAP }
+          : { top: r.bottom + GAP }),
+      });
+    }
+
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open, triggerRef]);
+
+  if (!open || typeof document === 'undefined' || !pos) return null;
+
+  return createPortal(
     <div
+      ref={contentRef}
       role="listbox"
+      style={pos}
       className={cn(
-        'absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-elevated',
+        'z-[200] overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-elevated',
         className,
       )}
       {...props}
     >
       {children}
-    </div>
+    </div>,
+    document.body,
   );
 }
 
