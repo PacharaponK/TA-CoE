@@ -15,6 +15,17 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+/** One subject + the student's section in that subject. */
+export class EnrollmentDto {
+  @IsMongoId()
+  subjectId: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  section?: string;
+}
+
 export class CreateStudentDto {
   @IsString()
   @MaxLength(100)
@@ -38,11 +49,6 @@ export class CreateStudentDto {
   @Max(6)
   year: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  section?: string;
-
   @ValidateIf((o) => !!o.email)
   @IsEmail()
   email?: string;
@@ -52,11 +58,12 @@ export class CreateStudentDto {
   @MaxLength(30)
   phone?: string;
 
-  /** Subjects this student is enrolled in. */
+  /** Subjects this student is enrolled in, each with its own section. */
   @IsOptional()
   @IsArray()
-  @IsMongoId({ each: true })
-  subjectIds?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => EnrollmentDto)
+  enrollments?: EnrollmentDto[];
 
   @IsOptional()
   @IsBoolean()
@@ -85,11 +92,6 @@ export class UpdateStudentDto {
   @Max(6)
   year?: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  section?: string;
-
   @ValidateIf((o) => !!o.email)
   @IsEmail()
   email?: string;
@@ -105,8 +107,9 @@ export class UpdateStudentDto {
 
   @IsOptional()
   @IsArray()
-  @IsMongoId({ each: true })
-  subjectIds?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => EnrollmentDto)
+  enrollments?: EnrollmentDto[];
 }
 
 /** Body for bulk delete: `{ ids: [...] }`. */

@@ -62,6 +62,22 @@ function StatChip({
   );
 }
 
+// Distinct, non-empty sections a student belongs to across all their subjects.
+function studentSections(s: Student): string {
+  return [...new Set(s.enrollments.map((e) => e.section).filter(Boolean))].join(', ');
+}
+
+// One enrollment per subject (defends against duplicate rows in the data,
+// which would otherwise render twice and collide React keys).
+function uniqueEnrollments(s: Student) {
+  const seen = new Set<string>();
+  return s.enrollments.filter((e) => {
+    if (seen.has(e.subjectId)) return false;
+    seen.add(e.subjectId);
+    return true;
+  });
+}
+
 // ── Main manager ──────────────────────────────────────────────────
 function Manager() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -124,14 +140,20 @@ function Manager() {
 
   // derived
   const years = useMemo(() => [...new Set(students.map(s => s.year))].sort(), [students]);
-  const sections = useMemo(() => [...new Set(students.map(s => s.section).filter(Boolean))].sort(), [students]);
+  const sections = useMemo(
+    () => [...new Set(students.flatMap(s => s.enrollments.map(e => e.section)).filter(Boolean))].sort(),
+    [students],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return students.filter(s => {
       if (filterYear && String(s.year) !== filterYear) return false;
-      if (filterSection && s.section !== filterSection) return false;
-      if (filterSubject && !s.subjectIds.includes(filterSubject)) return false;
+      // When a subject is also chosen, match the section *within* that subject.
+      if (filterSection && !s.enrollments.some(e =>
+        e.section === filterSection && (!filterSubject || e.subjectId === filterSubject)
+      )) return false;
+      if (filterSubject && !s.enrollments.some(e => e.subjectId === filterSubject)) return false;
       if (!q) return true;
       return (
         s.studentId.includes(q) ||
@@ -474,7 +496,7 @@ function Manager() {
                           {!s.isActive && <Badge variant="secondary" className="ml-2 text-xs">ปิด</Badge>}
                         </p>
                         <p className="mt-0.5 text-xs text-zinc-400">
-                          {s.studentId} · ปีที่ {s.year}{s.section ? ` · Sec ${s.section}` : ''}
+                          {s.studentId} · ปีที่ {s.year}{studentSections(s) ? ` · Sec ${studentSections(s)}` : ''}
                         </p>
                       </div>
                     </div>
@@ -496,15 +518,15 @@ function Manager() {
                     </span>
                     <span className="text-sm text-zinc-400">{s.nickname || '–'}</span>
                     <span className="text-sm text-zinc-400">{s.year}</span>
-                    <span className="text-sm text-zinc-400">{s.section || '–'}</span>
+                    <span className="text-sm text-zinc-400">{studentSections(s) || '–'}</span>
                     <RowActions onEdit={() => openEdit(s)} onDelete={() => setDeleteTarget(s)} />
                   </div>
 
-                  {s.subjectIds.length > 0 && (
+                  {s.enrollments.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1.5 sm:pl-[calc(1.5rem+3rem+10rem+0.75rem*3)]">
-                      {s.subjectIds.map((id) => (
-                        <Badge key={id} variant="outline" className="text-[10px] text-zinc-400 border-zinc-700">
-                          {subjectById.get(id)?.code ?? '—'}
+                      {uniqueEnrollments(s).map((e) => (
+                        <Badge key={e.subjectId} variant="outline" className="text-[10px] text-zinc-400 border-zinc-700">
+                          {subjectById.get(e.subjectId)?.code ?? '—'}{e.section ? ` · ${e.section}` : ''}
                         </Badge>
                       ))}
                     </div>

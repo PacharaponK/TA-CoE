@@ -53,11 +53,10 @@ export function ImportPanel({
           surname: r.surname,
           nickname: r.nickname,
           year: r.year,
-          section: r.section,
           email: r.email,
           phone: r.phone,
           isActive: r.isActive,
-          subjectIds: r.subjectIds,
+          enrollments: r.enrollments,
         })),
       );
       setResult({ created: res.created, updated: res.updated, errors: res.errors.length });
@@ -76,7 +75,8 @@ export function ImportPanel({
           <div>
             <p className="text-sm font-semibold text-white">นำเข้านักศึกษาจาก CSV</p>
             <p className="mt-1 text-xs text-zinc-400">
-              คอลัมน์ที่รองรับ: รหัสนักศึกษา, ชื่อ, นามสกุล, ชื่อเล่น, ชั้นปี, Section, อีเมล, เบอร์โทร, วิชา (คั่นด้วย ; ใช้รหัสวิชา), สถานะ.
+              คอลัมน์ที่รองรับ: รหัสนักศึกษา, ชื่อ, นามสกุล, ชื่อเล่น, ชั้นปี, อีเมล, เบอร์โทร, วิชา, สถานะ.
+              คอลัมน์ "วิชา" ใส่ Section ต่อวิชาได้ในรูปแบบ <code>รหัสวิชา:section</code> คั่นแต่ละวิชาด้วย <code>;</code> (เช่น <code>CS101:01;CS202:03</code>).
               รหัสนักศึกษาที่มีอยู่แล้วจะถูกอัปเดตทับด้วยข้อมูลในไฟล์
             </p>
           </div>

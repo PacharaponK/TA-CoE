@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import type { Student, Subject } from '@/lib/types';
+import type { Enrollment, Student, Subject } from '@/lib/types';
 
 export function StudentForm({
   initial,
@@ -24,16 +24,25 @@ export function StudentForm({
   const [surname, setSurname] = useState(initial?.surname ?? '');
   const [nickname, setNickname] = useState(initial?.nickname ?? '');
   const [year, setYear] = useState(String(initial?.year ?? ''));
-  const [section, setSection] = useState(initial?.section ?? '');
   const [email, setEmail] = useState(initial?.email ?? '');
   const [phone, setPhone] = useState(initial?.phone ?? '');
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
-  const [subjectIds, setSubjectIds] = useState<string[]>(initial?.subjectIds ?? []);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>(
+    initial?.enrollments ?? [],
+  );
   const [busy, setBusy] = useState(false);
 
   function toggleSubject(id: string) {
-    setSubjectIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    setEnrollments((prev) =>
+      prev.some((e) => e.subjectId === id)
+        ? prev.filter((e) => e.subjectId !== id)
+        : [...prev, { subjectId: id, section: '' }],
+    );
+  }
+
+  function setSectionFor(id: string, section: string) {
+    setEnrollments((prev) =>
+      prev.map((e) => (e.subjectId === id ? { ...e, section } : e)),
     );
   }
 
@@ -53,11 +62,13 @@ export function StudentForm({
         surname: surname.trim(),
         nickname: nickname.trim(),
         year: Number(year),
-        section: section.trim(),
         email: email.trim(),
         phone: phone.trim(),
         isActive,
-        subjectIds,
+        enrollments: enrollments.map((e) => ({
+          subjectId: e.subjectId,
+          section: e.section.trim(),
+        })),
       });
     } finally {
       setBusy(false);
@@ -113,41 +124,45 @@ export function StudentForm({
             <Field label="ชื่อเล่น">
               <Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="โบ" className={inputCn} />
             </Field>
-            <Field label="Section">
-              <Input value={section} onChange={(e) => setSection(e.target.value)} placeholder="01" className={inputCn} />
-            </Field>
             <Field label="อีเมล">
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@example.com" className={inputCn} />
             </Field>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
             <Field label="เบอร์โทร">
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="08x-xxx-xxxx" className={inputCn} />
             </Field>
           </div>
 
-          <Field label="วิชาที่ลงทะเบียน" hint="กำหนดว่านักศึกษาคนนี้จะถูกค้นเจอเมื่อเพิ่มเข้าคิวของวิชาไหนได้บ้าง">
+          <Field label="วิชาที่ลงทะเบียน & Section" hint="เลือกวิชาที่นักศึกษาลงทะเบียน แล้วกรอก Section ของวิชานั้น (แต่ละวิชา Section อาจต่างกัน)">
             {subjects.length === 0 ? (
               <p className="text-xs text-zinc-500">ยังไม่มีวิชาในระบบ</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col gap-2">
                 {subjects.map((subj) => {
-                  const checked = subjectIds.includes(subj._id);
+                  const enr = enrollments.find((e) => e.subjectId === subj._id);
+                  const checked = !!enr;
                   return (
-                    <button
-                      key={subj._id}
-                      type="button"
-                      onClick={() => toggleSubject(subj._id)}
-                      className={cn(
-                        'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                        checked
-                          ? 'border-white/20 bg-white text-black'
-                          : 'border-zinc-700 bg-zinc-900/40 text-zinc-400 hover:text-white',
+                    <div key={subj._id} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleSubject(subj._id)}
+                        className={cn(
+                          'w-28 shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors text-left',
+                          checked
+                            ? 'border-white/20 bg-white text-black'
+                            : 'border-zinc-700 bg-zinc-900/40 text-zinc-400 hover:text-white',
+                        )}
+                      >
+                        {checked ? '✓ ' : ''}{subj.code}
+                      </button>
+                      {checked && (
+                        <Input
+                          value={enr!.section}
+                          onChange={(e) => setSectionFor(subj._id, e.target.value)}
+                          placeholder="Section (เช่น 01)"
+                          className={cn('h-8 max-w-[12rem]', inputCn)}
+                        />
                       )}
-                    >
-                      {subj.code}
-                    </button>
+                    </div>
                   );
                 })}
               </div>

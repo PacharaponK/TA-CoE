@@ -67,7 +67,10 @@ export class SubjectsService {
     await this.labModel.deleteMany({ subjectId: id }).exec();
     await this.queueModel.deleteMany({ subjectId: id }).exec();
     await this.studentModel
-      .updateMany({ subjectIds: id }, { $pull: { subjectIds: id } })
+      .updateMany(
+        { 'enrollments.subjectId': id },
+        { $pull: { enrollments: { subjectId: id } } },
+      )
       .exec();
     return { deleted: true, id };
   }

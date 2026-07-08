@@ -27,6 +27,12 @@ export interface Lab {
   updatedAt?: string;
 }
 
+/** One subject the student takes, with their section in that subject. */
+export interface Enrollment {
+  subjectId: string;
+  section: string;
+}
+
 export interface Student {
   _id: string;
   studentId: string;
@@ -34,12 +40,11 @@ export interface Student {
   surname: string;
   nickname: string;
   year: number;
-  section: string;
   email: string;
   phone: string;
   isActive: boolean;
-  /** Subjects this student is enrolled in. */
-  subjectIds: string[];
+  /** Subjects this student is enrolled in — each with its own section. */
+  enrollments: Enrollment[];
   createdAt?: string;
   updatedAt?: string;
 }
