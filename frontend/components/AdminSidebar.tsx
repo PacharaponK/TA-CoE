@@ -30,7 +30,7 @@ const NAV = [
   { href: '/admin/settings', label: 'ตั้งค่า',    icon: Settings,   exact: false, adminOnly: true },
 ] as const;
 
-function NavLinks({ onNav }: { onNav?: () => void }) {
+function NavLinks({ onNav, showBrand = true }: { onNav?: () => void; showBrand?: boolean }) {
   const pathname = usePathname();
   const ta = useCurrentTa();
 
@@ -47,22 +47,24 @@ function NavLinks({ onNav }: { onNav?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Brand */}
-      <div className="px-5 py-5 border-b border-zinc-800/70">
-        <Link href="/admin" onClick={onNav} className="flex items-center gap-2.5 group">
-          <img
-            src="/logo.png"
-            alt="Logo"
-            className="h-7 w-7 rounded-lg object-cover transition-transform group-hover:scale-105"
-          />
-          <div>
-            <p className="text-sm font-bold tracking-tight text-white">TA@CoE</p>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
-              TA Console
-            </p>
-          </div>
-        </Link>
-      </div>
+      {/* Brand (hidden in the mobile drawer, which has its own header) */}
+      {showBrand && (
+        <div className="px-5 py-5 border-b border-zinc-800/70">
+          <Link href="/admin" onClick={onNav} className="flex items-center gap-2.5 group">
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-7 w-7 rounded-lg object-cover transition-transform group-hover:scale-105"
+            />
+            <div>
+              <p className="text-sm font-bold tracking-tight text-white">TA@CoE</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+                TA Console
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* Primary nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -189,7 +191,7 @@ export function AdminSidebar() {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <NavLinks onNav={close} />
+        <NavLinks onNav={close} showBrand={false} />
       </aside>
     </>
   );
