@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Loading from "@/app/loading";
 import { ScopePicker } from "@/components/ScopePicker";
 import { EmptyState, Spinner } from "@/components/ui";
+import { Input } from "@/components/ui/input";
 import { queueApi, studentsApi } from "@/lib/api";
 import { useScope } from "@/lib/useScope";
 import { useRealtime } from "@/lib/useRealtime";
@@ -28,6 +29,7 @@ function AdminQueue() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [queueSearch, setQueueSearch] = useState("");
 
   const selectedLab = labs.find((l) => l._id === scope.labId);
   const needsCheckpoint = (selectedLab?.checkpoints?.length ?? 0) > 0;
@@ -76,6 +78,17 @@ function AdminQueue() {
   useRealtime(handleChange);
 
   const run = useAction(reload, setError);
+
+  // filter the live queue while keeping each entry's real position number
+  const q = queueSearch.trim().toLowerCase();
+  const shownEntries = entries
+    .map((entry, i) => ({ entry, position: i + 1 }))
+    .filter(({ entry }) =>
+      !q ||
+      entry.studentName.toLowerCase().includes(q) ||
+      entry.studentId.includes(q) ||
+      (entry.section ?? "").toLowerCase().includes(q),
+    );
 
   return (
     <main className="container-page flex w-full flex-1 flex-col gap-8 py-8 relative z-10 animate-[fadeIn_0.5s_ease_both]">
@@ -133,6 +146,18 @@ function AdminQueue() {
 
             {error && <p className="text-sm text-red-400">{error}</p>}
 
+            {entries.length > 0 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Input
+                  placeholder="ค้นหาในคิว: ชื่อ / รหัสนักศึกษา / Section…"
+                  value={queueSearch}
+                  onChange={(e) => setQueueSearch(e.target.value)}
+                  className="pl-9 border-zinc-800 bg-black/40 text-white placeholder-zinc-500 focus-visible:ring-zinc-500/20 focus-visible:border-zinc-700"
+                />
+              </div>
+            )}
+
             {loading && entries.length === 0 ? (
               <Spinner />
             ) : entries.length === 0 ? (
@@ -140,13 +165,19 @@ function AdminQueue() {
                 icon={<Sparkles className="h-5 w-5 text-zinc-400" />}
                 title="ยังไม่มีคิว"
               />
+            ) : shownEntries.length === 0 ? (
+              <EmptyState
+                icon={<Search className="h-5 w-5 text-zinc-400" />}
+                title="ไม่พบคิวที่ค้นหา"
+                description="ลองเปลี่ยนคำค้นหา"
+              />
             ) : (
               <div className="flex flex-col gap-2">
-                {entries.map((e, i) => (
+                {shownEntries.map(({ entry, position }) => (
                   <QueueRow
-                    key={e._id}
-                    entry={e}
-                    index={i + 1}
+                    key={entry._id}
+                    entry={entry}
+                    index={position}
                     onAction={run}
                   />
                 ))}
@@ -156,6 +187,7 @@ function AdminQueue() {
           <EnqueueForm
             scope={scope}
             needsCheckpoint={needsCheckpoint}
+            checkpoints={selectedLab?.checkpoints ?? []}
             students={students}
             entries={entries}
             onEnqueued={reload}

@@ -47,8 +47,7 @@ export function EnqueueModal({
   const [mName, setMName] = useState('');
   const [mSection, setMSection] = useState('');
 
-  // shared section override (search mode) + checkpoint
-  const [section, setSection] = useState('');
+  // checkpoint (in search mode the section comes from the student's enrollment)
   const [checkpointId, setCheckpointId] = useState<string>(
     scope.checkpointId === '__all__' ? '' : scope.checkpointId,
   );
@@ -72,10 +71,9 @@ export function EnqueueModal({
     setCheckpointId(scope.checkpointId === '__all__' ? '' : scope.checkpointId);
   }, [scope.checkpointId]);
 
-  // auto-fill section from selected student
-  useEffect(() => {
-    if (selected?.section) setSection(selected.section);
-  }, [selected]);
+  // the section a student is in *for this subject* (empty if not enrolled)
+  const sectionFor = (s: Student) =>
+    s.enrollments.find((e) => e.subjectId === scope.subjectId)?.section ?? '';
 
   // close on ESC
   useEffect(() => {
@@ -103,7 +101,6 @@ export function EnqueueModal({
     setMStudentId('');
     setMName('');
     setMSection('');
-    setSection('');
     setError('');
   }
 
@@ -130,13 +127,13 @@ export function EnqueueModal({
     ? selected && {
       studentId: selected.studentId,
       studentName: `${selected.firstName} ${selected.surname}`.trim(),
-      section: section.trim() || undefined,
+      section: sectionFor(selected) || undefined,
     }
     : matchedStudent
       ? {
         studentId: matchedStudent.studentId,
         studentName: `${matchedStudent.firstName} ${matchedStudent.surname}`.trim(),
-        section: matchedStudent.section || undefined,
+        section: sectionFor(matchedStudent) || undefined,
       }
       : mStudentIdValid && mName.trim()
         ? {
@@ -237,77 +234,8 @@ export function EnqueueModal({
             ))}
           </div>
 
-          {mode === 'search' ? (
-            <>
-              <Field label="ค้นหานักศึกษา">
-                <StudentSearchInput
-                  students={students}
-                  selected={selected}
-                  onSelect={setSelected}
-                  placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา"
-                />
-              </Field>
-
-              {selected && (
-                <Field label="Section">
-                  <Input
-                    value={section}
-                    onChange={(e) => setSection(e.target.value)}
-                    placeholder="01"
-                    className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                  />
-                </Field>
-              )}
-            </>
-          ) : (
-            <>
-              <Field label="รหัสนักศึกษา">
-                <Input
-                  value={mStudentId}
-                  onChange={(e) =>
-                    setMStudentId(e.target.value.replace(/\D/g, '').slice(0, 10))
-                  }
-                  inputMode="numeric"
-                  maxLength={10}
-                  placeholder="6301xxxxx"
-                  className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                />
-                {mStudentId.length > 0 && !mStudentIdValid && (
-                  <p className="mt-1 text-xs text-orange-400">
-                    รหัสนักศึกษาต้องเป็นตัวเลข 10 หลัก
-                  </p>
-                )}
-                {matchedStudent && (
-                  <p className="mt-1 text-xs text-emerald-400">
-                    ✓ พบในรายชื่อ: {matchedStudent.firstName} {matchedStudent.surname}
-                    {matchedStudent.section && ` · Sec ${matchedStudent.section}`}
-                  </p>
-                )}
-              </Field>
-              {!matchedStudent && (
-                <>
-                  <Field label="ชื่อ-นามสกุล">
-                    <Input
-                      value={mName}
-                      onChange={(e) => setMName(e.target.value)}
-                      placeholder="ชื่อ นามสกุล"
-                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                    />
-                  </Field>
-                  <Field label="กลุ่มเรียน (Section)">
-                    <Input
-                      value={mSection}
-                      onChange={(e) => setMSection(e.target.value)}
-                      placeholder="01 (ถ้ามี)"
-                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
-                    />
-                  </Field>
-                </>
-              )}
-            </>
-          )}
-
-          {/* checkpoint picker when needed */}
+          {/* checkpoint picker first, so its dropdown overlays the fields
+              below instead of being clipped at the scroll container's edge */}
           {needsCheckpoint && (
             <Field label="Checkpoint">
               <Select
@@ -338,6 +266,66 @@ export function EnqueueModal({
                 ⚠ Lab นี้ต้องระบุ Checkpoint
               </p>
             )}
+
+          {mode === 'search' ? (
+            <>
+              <Field label="ค้นหานักศึกษา">
+                <StudentSearchInput
+                  students={students}
+                  selected={selected}
+                  onSelect={setSelected}
+                  subjectId={scope.subjectId}
+                  placeholder="ค้นหาด้วยชื่อ, รหัสนักศึกษา"
+                />
+              </Field>
+            </>
+          ) : (
+            <>
+              <Field label="รหัสนักศึกษา">
+                <Input
+                  value={mStudentId}
+                  onChange={(e) =>
+                    setMStudentId(e.target.value.replace(/\D/g, '').slice(0, 10))
+                  }
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="6301xxxxx"
+                  className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
+                />
+                {mStudentId.length > 0 && !mStudentIdValid && (
+                  <p className="mt-1 text-xs text-orange-400">
+                    รหัสนักศึกษาต้องเป็นตัวเลข 10 หลัก
+                  </p>
+                )}
+                {matchedStudent && (
+                  <p className="mt-1 text-xs text-emerald-400">
+                    ✓ พบในรายชื่อ: {matchedStudent.firstName} {matchedStudent.surname}
+                    {sectionFor(matchedStudent) && ` · Sec ${sectionFor(matchedStudent)}`}
+                  </p>
+                )}
+              </Field>
+              {!matchedStudent && (
+                <>
+                  <Field label="ชื่อ-นามสกุล">
+                    <Input
+                      value={mName}
+                      onChange={(e) => setMName(e.target.value)}
+                      placeholder="ชื่อ นามสกุล"
+                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
+                    />
+                  </Field>
+                  <Field label="กลุ่มเรียน (Section)">
+                    <Input
+                      value={mSection}
+                      onChange={(e) => setMSection(e.target.value)}
+                      placeholder="01 (ถ้ามี)"
+                      className="border-white/10 bg-black/40 text-white placeholder-zinc-600 focus-visible:ring-zinc-500/30"
+                    />
+                  </Field>
+                </>
+              )}
+            </>
+          )}
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 

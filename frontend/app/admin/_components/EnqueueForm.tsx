@@ -6,8 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Field } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { queueApi } from '@/lib/api';
-import type { QueueEntry, Student } from '@/lib/types';
+import type { Checkpoint, QueueEntry, Student } from '@/lib/types';
 
 interface Scope {
   subjectId: string;
@@ -18,39 +25,53 @@ interface Scope {
 export function EnqueueForm({
   scope,
   needsCheckpoint,
+  checkpoints,
   students,
   entries,
   onEnqueued,
 }: {
   scope: Scope;
   needsCheckpoint: boolean;
+  checkpoints: Checkpoint[];
   students: Student[];
   entries: QueueEntry[];
   onEnqueued: () => void;
 }) {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [section, setSection] = useState('');
+  const [checkpointId, setCheckpointId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (selectedStudent?.section) setSection(selectedStudent.section);
-  }, [selectedStudent]);
+    const enrolled = selectedStudent?.enrollments.find(
+      (e) => e.subjectId === scope.subjectId,
+    );
+    if (enrolled?.section) setSection(enrolled.section);
+  }, [selectedStudent, scope.subjectId]);
+
+  // seed the local checkpoint from the scope when it points at a specific one;
+  // '__all__' or unset leaves it empty so the TA picks here
+  useEffect(() => {
+    setCheckpointId(
+      scope.checkpointId && scope.checkpointId !== '__all__'
+        ? scope.checkpointId
+        : '',
+    );
+  }, [scope.checkpointId, scope.labId]);
+
+  const effectiveCheckpoint = needsCheckpoint && checkpointId ? checkpointId : null;
 
   const alreadyIn = selectedStudent
     ? entries.some(
         (e) =>
           e.studentId === selectedStudent.studentId &&
-          (!scope.checkpointId ||
-            scope.checkpointId === '__all__' ||
-            e.checkpointId === scope.checkpointId),
+          (!effectiveCheckpoint || e.checkpointId === effectiveCheckpoint),
       )
     : false;
 
   const canAdd =
-    !!selectedStudent &&
-    !alreadyIn &&
-    (!needsCheckpoint || (scope.checkpointId && scope.checkpointId !== '__all__'));
+    !!selectedStudent && !alreadyIn && (!needsCheckpoint || !!checkpointId);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,10 +82,7 @@ export function EnqueueForm({
       await queueApi.enqueue({
         subjectId: scope.subjectId,
         labId: scope.labId,
-        checkpointId:
-          scope.checkpointId && scope.checkpointId !== '__all__'
-            ? scope.checkpointId
-            : null,
+        checkpointId: effectiveCheckpoint,
         studentId: selectedStudent.studentId,
         studentName: `${selectedStudent.firstName} ${selectedStudent.surname}`,
         section: section.trim() || undefined,
@@ -83,11 +101,6 @@ export function EnqueueForm({
     <div className="relative z-10 rounded-xl border border-zinc-800 bg-zinc-900/30 p-6 flex flex-col gap-4 shadow-xl backdrop-blur-md">
       <div className="pb-1">
         <h2 className="text-sm font-semibold tracking-wider text-zinc-400 uppercase">เพิ่มเข้าคิว</h2>
-        {needsCheckpoint && (!scope.checkpointId || scope.checkpointId === '__all__') && (
-          <p className="text-xs text-orange-400 mt-1 animate-pulse">
-            ⚠ Lab นี้มี Checkpoint — กรุณาเลือก Checkpoint ด้านบนก่อน
-          </p>
-        )}
       </div>
 
       <Separator className="bg-white/5" />
@@ -99,6 +112,7 @@ export function EnqueueForm({
               students={students}
               selected={selectedStudent}
               onSelect={setSelectedStudent}
+              subjectId={scope.subjectId}
             />
           </Field>
           <Field label="Section">
@@ -117,6 +131,30 @@ export function EnqueueForm({
             {busy ? 'กำลังเพิ่ม…' : '+ เพิ่มเข้าคิว'}
           </Button>
         </div>
+
+        {needsCheckpoint && (
+          <Field label="Checkpoint">
+            <Select
+              value={checkpointId || undefined}
+              onValueChange={(v) => setCheckpointId(v ?? '')}
+            >
+              <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
+                <SelectValue placeholder="เลือก Checkpoint" />
+              </SelectTrigger>
+              <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
+                {checkpoints.map((c) => (
+                  <SelectItem
+                    key={c._id}
+                    value={c._id}
+                    className="text-zinc-300 hover:bg-white/5 hover:text-white"
+                  >
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
 
         {alreadyIn && selectedStudent && (
           <p className="flex items-center gap-1.5 text-sm text-amber-500">
