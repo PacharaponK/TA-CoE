@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { Button, Input, Field } from '@/components/ui';
 import {
   Select,
@@ -47,10 +47,16 @@ export function EnqueueModal({
   const [mName, setMName] = useState('');
   const [mSection, setMSection] = useState('');
 
-  // checkpoint (in search mode the section comes from the student's enrollment)
-  const [checkpointId, setCheckpointId] = useState<string>(
-    scope.checkpointId === '__all__' ? '' : scope.checkpointId,
+  // checkpoints (in search mode the section comes from the student's enrollment)
+  // a student can join multiple checkpoints of the same lab at once
+  const [checkpointIds, setCheckpointIds] = useState<string[]>(
+    scope.checkpointId && scope.checkpointId !== '__all__'
+      ? [scope.checkpointId]
+      : [],
   );
+
+  // when off, the checkpoint picker is a plain single-select dropdown
+  const [multiCheckpoint, setMultiCheckpoint] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -68,8 +74,24 @@ export function EnqueueModal({
 
   // sync checkpoint from parent scope; treat '__all__' as unset
   useEffect(() => {
-    setCheckpointId(scope.checkpointId === '__all__' ? '' : scope.checkpointId);
+    setCheckpointIds(
+      scope.checkpointId && scope.checkpointId !== '__all__'
+        ? [scope.checkpointId]
+        : [],
+    );
   }, [scope.checkpointId]);
+
+  function toggleCheckpoint(id: string) {
+    setCheckpointIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
+  }
+
+  function toggleMultiCheckpoint(on: boolean) {
+    setMultiCheckpoint(on);
+    // dropping back to single-select keeps only the first pick
+    if (!on) setCheckpointIds((prev) => prev.slice(0, 1));
+  }
 
   // the section a student is in *for this subject* (empty if not enrolled)
   const sectionFor = (s: Student) =>
@@ -102,6 +124,12 @@ export function EnqueueModal({
     setMName('');
     setMSection('');
     setError('');
+    setCheckpointIds(
+      scope.checkpointId && scope.checkpointId !== '__all__'
+        ? [scope.checkpointId]
+        : [],
+    );
+    setMultiCheckpoint(false);
   }
 
   function handleClose() {
@@ -109,11 +137,8 @@ export function EnqueueModal({
     onClose();
   }
 
-  // effective checkpoint to send (null when "all" or not required)
-  const effectiveCheckpoint =
-    needsCheckpoint && checkpointId && checkpointId !== '__all__'
-      ? checkpointId
-      : null;
+  // effective checkpoints to send (a single `[null]` entry when not required)
+  const effectiveCheckpoints = needsCheckpoint ? checkpointIds : [null];
 
   const mStudentIdValid = /^\d{10}$/.test(mStudentId.trim());
 
@@ -146,7 +171,7 @@ export function EnqueueModal({
   const canSubmit =
     !!data &&
     !submitting &&
-    (!needsCheckpoint || (checkpointId && checkpointId !== '__all__'));
+    (!needsCheckpoint || checkpointIds.length > 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -154,19 +179,49 @@ export function EnqueueModal({
     setError('');
     setSubmitting(true);
     try {
-      await queueApi.join({
-        subjectId: scope.subjectId,
-        labId: scope.labId,
-        checkpointId: effectiveCheckpoint,
-        studentId: data.studentId,
-        studentName: data.studentName,
-        section: data.section,
-      });
+      const results = await Promise.allSettled(
+        effectiveCheckpoints.map((checkpointId) =>
+          queueApi.join({
+            subjectId: scope.subjectId,
+            labId: scope.labId,
+            checkpointId,
+            studentId: data.studentId,
+            studentName: data.studentName,
+            section: data.section,
+          }),
+        ),
+      );
+
+      const failed = results
+        .map((r, i) => ({ r, checkpointId: effectiveCheckpoints[i] }))
+        .filter((x): x is { r: PromiseRejectedResult; checkpointId: string | null } =>
+          x.r.status === 'rejected',
+        );
+
       setMyStudentId(data.studentId);
-      reset();
-      onClose();
-    } catch (err) {
-      setError((err as Error).message);
+
+      if (failed.length === 0) {
+        reset();
+        onClose();
+        return;
+      }
+
+      // keep only the checkpoints that failed so a retry doesn't re-join the rest
+      if (needsCheckpoint) {
+        setCheckpointIds(failed.map((f) => f.checkpointId as string));
+      }
+      const names = failed
+        .map(
+          (f) =>
+            checkpoints.find((c) => c._id === f.checkpointId)?.name ??
+            f.checkpointId,
+        )
+        .join(', ');
+      setError(
+        failed.length === effectiveCheckpoints.length
+          ? (failed[0].r.reason as Error).message
+          : `เข้าร่วมคิวไม่สำเร็จบางส่วน: ${names}`,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -194,8 +249,11 @@ export function EnqueueModal({
             <h2 className="text-base font-semibold text-white">เข้าร่วมคิว</h2>
             <p className="text-xs text-zinc-500 mt-0.5">
               {selectedLab?.name ?? '—'}
-              {effectiveCheckpoint &&
-                ` · ${checkpoints.find((c) => c._id === effectiveCheckpoint)?.name}`}
+              {checkpointIds.length > 0 &&
+                ` · ${checkpointIds
+                  .map((id) => checkpoints.find((c) => c._id === id)?.name)
+                  .filter(Boolean)
+                  .join(', ')}`}
             </p>
           </div>
           <button
@@ -237,35 +295,89 @@ export function EnqueueModal({
           {/* checkpoint picker first, so its dropdown overlays the fields
               below instead of being clipped at the scroll container's edge */}
           {needsCheckpoint && (
-            <Field label="Checkpoint">
-              <Select
-                value={checkpointId || undefined}
-                onValueChange={(v) => setCheckpointId(v ?? '')}
-              >
-                <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
-                  <SelectValue placeholder="เลือก Checkpoint" />
-                </SelectTrigger>
-                <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
-                  {checkpoints.map((c) => (
-                    <SelectItem
-                      key={c._id}
-                      value={c._id}
-                      className="text-zinc-300 hover:bg-white/5 hover:text-white"
-                    >
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <>
+              <Field label="Checkpoint">
+                {multiCheckpoint ? (
+                  <div className="flex flex-col gap-1.5">
+                    {checkpoints.map((c) => {
+                      const checked = checkpointIds.includes(c._id);
+                      return (
+                        <button
+                          key={c._id}
+                          type="button"
+                          onClick={() => toggleCheckpoint(c._id)}
+                          className={cn(
+                            'flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors',
+                            checked
+                              ? 'border-white/20 bg-white/10 text-white'
+                              : 'border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white',
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                              checked
+                                ? 'border-white bg-white text-black'
+                                : 'border-zinc-600',
+                            )}
+                          >
+                            {checked && <Check className="h-3 w-3" />}
+                          </span>
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Select
+                    value={checkpointIds[0] || undefined}
+                    onValueChange={(v) => setCheckpointIds(v ? [v] : [])}
+                  >
+                    <SelectTrigger className="w-full border-zinc-800 bg-zinc-950/80 text-zinc-300 hover:bg-zinc-900/80 hover:text-white focus:border-zinc-500/50 transition-all duration-300">
+                      <SelectValue placeholder="เลือก Checkpoint" />
+                    </SelectTrigger>
+                    <SelectContent className="border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
+                      {checkpoints.map((c) => (
+                        <SelectItem
+                          key={c._id}
+                          value={c._id}
+                          className="text-zinc-300 hover:bg-white/5 hover:text-white"
+                        >
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Field>
+
+              <label className="-mt-2 flex items-center gap-2 text-xs text-zinc-400">
+                <span
+                  onClick={() => toggleMultiCheckpoint(!multiCheckpoint)}
+                  className={cn(
+                    'flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border',
+                    multiCheckpoint
+                      ? 'border-white bg-white text-black'
+                      : 'border-zinc-600',
+                  )}
+                >
+                  {multiCheckpoint && <Check className="h-3 w-3" />}
+                </span>
+                <span
+                  onClick={() => toggleMultiCheckpoint(!multiCheckpoint)}
+                  className="cursor-pointer select-none"
+                >
+                  เข้าร่วมหลาย Checkpoint พร้อมกัน
+                </span>
+              </label>
+            </>
           )}
 
-          {needsCheckpoint &&
-            (!checkpointId || checkpointId === '__all__') && (
-              <p className="text-xs text-orange-400">
-                ⚠ Lab นี้ต้องระบุ Checkpoint
-              </p>
-            )}
+          {needsCheckpoint && checkpointIds.length === 0 && (
+            <p className="text-xs text-orange-400">
+              ⚠ Lab นี้ต้องระบุ Checkpoint อย่างน้อย 1 รายการ
+            </p>
+          )}
 
           {mode === 'search' ? (
             <>
@@ -334,7 +446,11 @@ export function EnqueueModal({
             disabled={!canSubmit}
             className="mt-1 w-full rounded-full bg-white font-semibold text-black hover:bg-white/90"
           >
-            {submitting ? 'กำลังเข้าร่วม…' : '+ เข้าร่วมคิว'}
+            {submitting
+              ? 'กำลังเข้าร่วม…'
+              : checkpointIds.length > 1
+                ? `+ เข้าร่วมคิว (${checkpointIds.length} Checkpoint)`
+                : '+ เข้าร่วมคิว'}
           </Button>
         </form>
       </div>
