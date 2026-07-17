@@ -8,8 +8,10 @@ import { EmptyState, Spinner } from '@/components/ui';
 import { labsApi } from '@/lib/api';
 import { useAction } from '@/lib/useAction';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { cn } from '@/lib/utils';
 import type { Lab, Subject } from '@/lib/types';
 import { LabForm } from './LabForm';
+import { ActiveToggle } from './ActiveToggle';
 
 export function LabsPanel({
   subject,
@@ -33,6 +35,19 @@ export function LabsPanel({
   useEffect(() => { reload(); }, [reload]);
 
   const run = useAction(reload, onError);
+
+  const toggleActive = useCallback(async (lab: Lab, next: boolean) => {
+    onError('');
+    // Optimistic: flip locally now, no spinner/refetch.
+    setLabs((prev) => prev.map((x) => (x._id === lab._id ? { ...x, isActive: next } : x)));
+    try {
+      await labsApi.update(lab._id, { isActive: next });
+    } catch (e) {
+      // Revert on failure.
+      setLabs((prev) => prev.map((x) => (x._id === lab._id ? { ...x, isActive: !next } : x)));
+      onError((e as Error).message);
+    }
+  }, [onError]);
 
   const nextOrder = labs.length > 0 ? Math.max(...labs.map((l) => l.order)) + 1 : 1;
 
@@ -82,15 +97,15 @@ export function LabsPanel({
             ) : (
               <Card
                 key={l._id}
-                className="transition-all duration-300 bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm hover:border-zinc-700"
+                className={cn(
+                  'transition-all duration-300 bg-zinc-900/30 border border-zinc-800 backdrop-blur-sm hover:border-zinc-700',
+                  !l.isActive && 'opacity-50',
+                )}
               >
                 <CardContent className="flex items-start justify-between gap-4 py-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white">
                       {l.name}
-                      {!l.isActive && (
-                        <Badge variant="secondary" className="ml-2 text-xs bg-zinc-800 text-zinc-300 border-none">ปิด</Badge>
-                      )}
                     </p>
                     <p className="text-xs text-zinc-500 mt-1">
                       ลำดับ {l.order} · {l.checkpoints.length ? `${l.checkpoints.length} checkpoint` : 'ไม่มี checkpoint'}
@@ -109,7 +124,7 @@ export function LabsPanel({
                       </div>
                     )}
                   </div>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Button
                       size="sm"
                       variant="ghost"
@@ -126,6 +141,11 @@ export function LabsPanel({
                     >
                       ลบ
                     </Button>
+                    <ActiveToggle
+                      active={l.isActive}
+                      onToggle={(next) => toggleActive(l, next)}
+                      title={l.isActive ? 'ปิดใช้งาน Lab นี้' : 'เปิดใช้งาน Lab นี้'}
+                    />
                   </div>
                 </CardContent>
               </Card>
